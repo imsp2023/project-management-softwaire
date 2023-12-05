@@ -158,7 +158,7 @@ class Task {
   assignedTo(username) {
     if (username == undefined) throw new Error("parameter is required");
     if (typeof username != "string" || username == "")
-      throw new Error("name attribute should be a non-empty string");
+      throw new Error("username attribute should be a non-empty string");
     this.#taskResponsible = username;
   }
 

@@ -469,7 +469,7 @@ QUnit.module("Task", () => {
       let tk = new Task(props);
       assert.throws(() => {
         tk.assignedTo(1);
-      }, new Error("name attribute should be a non-empty string"));
+      }, new Error("username attribute should be a non-empty string"));
     });
 
     test("throws an error when parameter username is a empty string", (assert) => {
@@ -487,7 +487,7 @@ QUnit.module("Task", () => {
       let tk = new Task(props);
       assert.throws(() => {
         tk.assignedTo("");
-      }, new Error("name attribute should be a non-empty string"));
+      }, new Error("username attribute should be a non-empty string"));
     });
   });
 });

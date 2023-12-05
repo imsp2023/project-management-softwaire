@@ -434,4 +434,60 @@ QUnit.module("Task", () => {
       }, new Error("there is already a FD relationship between these two tasks"));
     });
   });
+
+  QUnit.module("assignedTo", () => {
+    test("throws an error when parameter username is not specified", (assert) => {
+      let props = {
+        id: "1",
+        title: "",
+        description: "",
+        status: "",
+        priority: "",
+        startDate: new Date(2026, 0, 30),
+        dueDate: new Date(),
+        dependances: [],
+        taskResponsible: "",
+      };
+      let tk = new Task(props);
+      assert.throws(() => {
+        tk.assignedTo();
+      }, new Error("parameter is required"));
+    });
+
+    test("throws an error when parameter username is not a string", (assert) => {
+      let props = {
+        id: "1",
+        title: "",
+        description: "",
+        status: "",
+        priority: "",
+        startDate: new Date(2026, 0, 30),
+        dueDate: new Date(),
+        dependances: [],
+        taskResponsible: "",
+      };
+      let tk = new Task(props);
+      assert.throws(() => {
+        tk.assignedTo(1);
+      }, new Error("name attribute should be a non-empty string"));
+    });
+
+    test("throws an error when parameter username is a empty string", (assert) => {
+      let props = {
+        id: "1",
+        title: "",
+        description: "",
+        status: "",
+        priority: "",
+        startDate: new Date(2026, 0, 30),
+        dueDate: new Date(),
+        dependances: [],
+        taskResponsible: "",
+      };
+      let tk = new Task(props);
+      assert.throws(() => {
+        tk.assignedTo("");
+      }, new Error("name attribute should be a non-empty string"));
+    });
+  });
 });

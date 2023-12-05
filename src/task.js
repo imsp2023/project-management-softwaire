@@ -155,6 +155,13 @@ class Task {
     }
   }
 
+  assignedTo(username) {
+    if (username == undefined) throw new Error("parameter is required");
+    if (typeof username != "string" || username == "")
+      throw new Error("name attribute should be a non-empty string");
+    this.#taskResponsible = username;
+  }
+
   getId() {
     return this.#id;
   }
@@ -173,5 +180,9 @@ class Task {
 
   getDependances() {
     return this.#dependances;
+  }
+
+  getTaskResponsible() {
+    return this.#taskResponsible;
   }
 }

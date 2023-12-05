@@ -62,11 +62,10 @@ class Task {
             throw new Error("This startDate has passed");
 
         if (props.startDate && this.validateDateFormat(props.startDate) && !isNaN(date.getTime()) && date >= this.initializeHourMinSec(new Date()))
-            this.#startDate = this.initializeHourMinSec(new Date(props.startDate))
+            this.#startDate = this.initializeHourMinSec(new Date(props.startDate));
         else
             this.#startDate = this.initializeHourMinSec(new Date);
     }
-
 
     // let's get these attributes just for test
     get priority(){

@@ -69,7 +69,6 @@ class Task {
         var date = initializeHourMinSec(new Date(value));
         // if(!value)
         //     throw new Error("dueDate attribute should be provided");
-
         if(value && !validateDateFormat(value)) 
             throw new Error("dueDate should be in valid format");
         
@@ -100,18 +99,35 @@ class Task {
             this.#priority = DEFAULT_TASK_PRIORITY;
         }
 
+        console.log(this.priority);
+
         var date = initializeHourMinSec(new Date(props.startDate));
         if (props.startDate && validateDateFormat(props.startDate) && date >= initializeHourMinSec(new Date()))
             this.#startDate = initializeHourMinSec(new Date(props.startDate));
         else
             this.#startDate = initializeHourMinSec(new Date());
 
-        
+
         this.#validateDueDate(props.dueDate);
         this.#dueDate = initializeHourMinSec(new Date(props.dueDate));
     }
 
-    // let's get some attributes just for test
+    // getters
+    get id(){
+        return this.#id;
+    }
+
+    get title(){
+        return this.#title;
+    }
+
+    get description(){
+        return this.#description;
+    }
+
+    get status(){
+        return this.#status;
+    }
     get priority(){
         return this.#priority;
     }
@@ -122,5 +138,44 @@ class Task {
 
     get dueDate(){
         return this.#dueDate;
+    }
+
+    // setters
+    set id(value) {
+        this.#validateId(value);
+        this.#id = value;
+    }
+
+    set title(value) {
+        this.#validateTitle(value);
+        this.#title = value;
+    }
+
+    set description(value) {
+        this.#validateDescription(value);
+        this.#description = value;
+    }
+
+    set status(value) {
+        this.#validateStatus(value);
+        this.#status = value;
+    }
+
+    set priority(value) {
+        if(!value || typeof value != "string")
+            throw new Error("Task priority should be string");
+
+        this.#validatePriority(value);
+        this.#priority = value;
+    }
+
+    set startDate(value) {
+        this.#validateStartDate(value);
+        this.#startDate = initializeHourMinSec(new Date(value));;
+    }
+
+    set dueDate(value) {
+        this.#validateDueDate(value);
+        this.#dueDate = initializeHourMinSec(new Date(value));
     }
 }

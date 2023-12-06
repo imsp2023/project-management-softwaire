@@ -86,7 +86,7 @@ QUnit.module("Task", () => {
                 description: "Task description",
                 status: "to do",
                 priority: "high",
-                startDate: "2645-13-30"
+                startDate: "2023-13-30"
             };
 
             assert.throws(()=>{
@@ -94,14 +94,14 @@ QUnit.module("Task", () => {
             }, new Error("startDate should be in valid format"));
         });
 
-        test("throws an error when dueDate has passed", assert => {
+        test("throws an error when startDate has passed", assert => {
             const props = {
                 id: "etytdtgytf",
                 title: "My task name",
                 description: "Task description",
                 status: "to do",
                 priority: "high",
-                startDate: "2012-12-30"
+                startDate: "2013-02-31"
             };
                 
             assert.throws(()=>{
@@ -109,7 +109,7 @@ QUnit.module("Task", () => {
             }, new Error("This startDate has passed"));
         })
 
-        test("set startDate when it is valid", assert =>{
+        test("verify setting of startDate when it is valid", assert =>{
             const props = {
                 id: "etytdtgytf",
                 title: "My task name",
@@ -119,10 +119,9 @@ QUnit.module("Task", () => {
                 startDate: "2023-12-30"
             };
 
-            var task = new Task(props);
-            console.log(task.startDate);
-            console.log(task.initializeHourMinSec(new Date(props.startDate)));
-            assert.deepEqual(task.startDate, task.initializeHourMinSec(new Date(props.startDate)), "initialize startDate");
+            var task = new Task(props)
+            
+            assert.deepEqual(task.startDate, initializeHourMinSec(new Date(props.startDate)), "initialize startDate");
         });
 
 
@@ -135,7 +134,70 @@ QUnit.module("Task", () => {
                 priority: "high"
             };
             var task = new Task(props);
-            assert.deepEqual(task.startDate, task.initializeHourMinSec(new Date()), "initialize startDate");
+            assert.deepEqual(task.startDate, initializeHourMinSec(new Date()), "initialize startDate");
+        });
+
+
+        // dueDate attribute
+        // test("throws an error when dueDate attribute is not provided", assert=>{
+        //     const props = {
+        //         id: "etytdtgytf",
+        //         title: "My task name",
+        //         description: "Task description",
+        //         status: "to do",
+        //         priority: "high",
+        //         startDate: "2023-12-30"
+        //     };
+
+        //     assert.throws(()=>{
+        //         new Task(props);
+        //     }, new Error("dueDate attribute should be provided"));
+        // });
+
+        test("throws an error when dueDate is not in valid format", assert => {
+            const props = {
+                id: "etytdtgytf",
+                title: "My task name",
+                description: "Task description",
+                status: "to do",
+                priority: "high",
+                startDate: "2023-12-30",
+                dueDate: "2023-12-32"
+            };
+
+            assert.throws(()=>{
+                new Task(props);
+            }, new Error("dueDate should be in valid format"));
+        });
+
+        test("throws an error when dueDate is before startDate", assert => {
+            const props = {
+                id: "etytdtgytf",
+                title: "My task name",
+                description: "Task description",
+                status: "to do",
+                priority: "high",
+                startDate: "2023-12-30",
+                dueDate: "2023-12-28"
+            };
+                
+            assert.throws(()=>{
+                new Task(props);
+            }, new Error("This dueDate should be after startDate"));
+        })
+
+        test("verify setting of dueDate when it is valid", assert =>{
+            const props = {
+                id: "etytdtgytf",
+                title: "My task name",
+                description: "Task description",
+                status: "to do",
+                priority: "high",
+                startDate: "2023-12-30",
+                dueDate: "2023-12-31"
+            };
+            var task = new Task(props);
+            assert.deepEqual(task.dueDate, initializeHourMinSec(new Date(props.dueDate)), "initialize dueDate");
         });
     })}
 )

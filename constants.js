@@ -1,0 +1,1 @@
+const DEFAULT_TASK_PRIORITY = "normal";

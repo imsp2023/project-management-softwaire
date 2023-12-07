@@ -26,18 +26,4 @@ class Member {
     this.#role = props.role;
     this.#email = props.email;
   }
-
-  updateRole(role) {
-    if (role == undefined) throw new Error("parameter is required");
-    if (typeof role != "string" || role == "")
-      throw new Error("role attribute should be a non-empty string");
-    this.#role = role;
-  }
-
-  updateName(name) {
-    if (name == undefined) throw new Error("parameter is required");
-    if (typeof name != "string" || name == "")
-      throw new Error("name attribute should be a non-empty string");
-    this.#username = name;
-  }
 }

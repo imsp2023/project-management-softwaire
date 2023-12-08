@@ -1,3 +1,5 @@
+// const { Register } = require("../src/register");
+
 class Task {
   #id = "";
   #title = "";
@@ -17,7 +19,7 @@ class Task {
     this.#dueDate = props.dueDate;
   }
 
-  dependsOn(taskId, dependanceType, params) {
+  dependsOn(taskId, dependanceType, params = "") {
     if (taskId == undefined) throw new Error("parameter taskId is required");
     if (typeof taskId != "string" || taskId == "")
       throw new Error("parameter taskId should be a non-empty string");
@@ -32,15 +34,16 @@ class Task {
     )
       throw new Error("parameter dependanceType should be DD or FF or FD");
 
-    if (params == undefined) throw new Error("parameter params is missing");
+    // if (params == undefined) throw new Error("parameter params is missing");
 
-    if (typeof params != "object")
-      throw new Error("parameter params should be a object");
+    if (typeof params != "string") {
+      throw new Error("parameter params should be a string");
+    }
 
-    // if (dependanceType == "DD" && this.getStartDate() < task.getStartDate())
-    //   throw new Error(
-    //     "the start date of the dependent task should be greater than that of the task on which it depends"
-    //   );
+    var task = Register.getTask(taskId, "");
+    if (dependanceType == "DD" && this.getStartDate() < task.getStartDate()) {
+      this.#startDate = task.getStartDate();
+    }
 
     // if (dependanceType == "FF" && this.getDueDate() < task.getDueDate())
     //   throw new Error(

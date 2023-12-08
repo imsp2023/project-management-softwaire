@@ -1,137 +1,95 @@
 const { test } = QUnit;
+// const { Register } = require("../src/register");
 
 QUnit.module("Task", () => {
   QUnit.module("dependsOn", () => {
     test("throws an exception when the parameter taskId isn't specified", (assert) => {
-      let props = {
-        id: "",
-        title: "",
-        description: "",
-        status: "",
-        priority: "",
-        startDate: new Date(),
-        dueDate: new Date(),
-        dependances: [],
-        taskResponsible: "",
-      };
-
-      let tk = new Task(props);
+      let tk = new Task({ id: "" });
       assert.throws(() => {
         tk.dependsOn();
       }, new Error("parameter taskId is required"));
     });
 
     test("throws an exception when the parameter taskId isn't a string", (assert) => {
-      let props = {
-        id: "",
-        title: "",
-        description: "",
-        status: "",
-        priority: "",
-        startDate: new Date(),
-        dueDate: new Date(),
-        dependances: [],
-        taskResponsible: "",
-      };
-
-      let tk = new Task(props);
+      let tk = new Task({ id: "" });
       assert.throws(() => {
         tk.dependsOn(1);
       }, new Error("parameter taskId should be a non-empty string"));
     });
 
     test("throws an exception when the parameter taskId is empty string", (assert) => {
-      let props = {
-        id: "",
-        title: "",
-        description: "",
-        status: "",
-        priority: "",
-        startDate: new Date(),
-        dueDate: new Date(),
-        dependances: [],
-        taskResponsible: "",
-      };
-
-      let tk = new Task(props);
+      let tk = new Task({ id: "" });
       assert.throws(() => {
         tk.dependsOn("");
       }, new Error("parameter taskId should be a non-empty string"));
     });
 
     test("throws an exception when the parameter dependanceType is missing", (assert) => {
-      let props = {
-        id: "",
-        title: "",
-        description: "",
-        status: "",
-        priority: "",
-        startDate: new Date(),
-        dueDate: new Date(),
-        dependances: [],
-        taskResponsible: "",
-      };
-      let tk = new Task(props);
+      let tk = new Task({ id: "" });
       assert.throws(() => {
         tk.dependsOn("nfvrf");
       }, new Error("parameter dependanceType is missing"));
     });
 
     test("throws an exception when the parameter dependanceType isn't FF or DD or FD or child", (assert) => {
-      props = {
-        id: "",
-        title: "",
-        description: "",
-        status: "",
-        priority: "",
-        startDate: new Date(),
-        dueDate: new Date(),
-        dependances: [],
-        taskResponsible: "",
-      };
-      let tk = new Task(props);
+      let tk = new Task({ id: "" });
       assert.throws(() => {
         tk.dependsOn("nfvrf", "ls");
       }, new Error("parameter dependanceType should be DD or FF or FD"));
     });
 
-    test("throws an exception when the parameter params is missing", (assert) => {
-      let props = {
-        id: "",
-        title: "",
-        description: "",
-        status: "",
-        priority: "",
-        startDate: new Date(),
-        dueDate: new Date(),
-        dependances: [],
-        taskResponsible: "",
-      };
-      let tk = new Task(props);
+    test("throws an exception when the parameter params isn't a string", (assert) => {
+      let tk = new Task({ id: "" });
       assert.throws(() => {
-        tk.dependsOn("nfvrf", "DD");
-      }, new Error("parameter params is missing"));
+        tk.dependsOn("nfvrf", "DD", 1);
+      }, new Error("parameter params should be a string"));
     });
 
-    test("throws an exception when the parameter params isn't a object", (assert) => {
+    test("getTask of Register should be called exactly once when dependsOn() is called", (assert) => {
       let props = {
-        id: "",
-        title: "",
-        description: "",
-        status: "",
-        priority: "",
-        startDate: new Date(),
-        dueDate: new Date(),
+        id: "1",
+        startDate: new Date(2024, 1, 30),
         dependances: [],
-        taskResponsible: "",
       };
-      let tk = new Task(props);
-      assert.throws(() => {
-        tk.dependsOn("nfvrf", "DD", "autre");
-      }, new Error("parameter params should be a object"));
+      let task = new Task(props);
+
+      let props1 = {
+        id: "2",
+        startDate: new Date(2024, 1, 12),
+        dependances: [],
+      };
+      let task2 = new Task(props1);
+
+      var spy = sinon.spy(Register, "getTask");
+      task2.dependsOn(task.getId(), "DD");
+      assert.true(spy.withArgs("1", "").calledOnce);
+    });
+
+    test("with invalid startDate when i apply DD dependancie, startDate should be change", (assert) => {
+      let props = {
+        id: "1",
+        startDate: new Date(2024, 1, 30),
+        dependances: [],
+      };
+      let task = new Task(props);
+
+      let props1 = {
+        id: "2",
+        startDate: new Date(2024, 1, 12),
+        dependances: [],
+      };
+      let task2 = new Task(props1);
+      sinon
+        .stub(Register, "getTask")
+        .withArgs(props.id, "")
+        .returns({ getStartDate: () => new Date(2024, 1, 30) });
+
+      task2.dependsOn(task.getId(), "DD");
+      assert.true(task.getStartDate() <= task2.getStartDate());
     });
 
     // test("throws an exception if the dependanceType parameter is DD and the start date of the dependent task is less than that of the task on which it depends.", (assert) => {
+    //Faire une mise à jour de la date de debut de la tache qui a pour dependance DD d'une autre tache connue
     //   props = {
     //     id: "1",
     //     title: "",

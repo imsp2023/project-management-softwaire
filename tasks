@@ -1,0 +1,28 @@
+#Project Class
+
+--removeMember(id: string)--
+    -throws an error when member with this id is not founded
+    -remove member when id is valid
+    -update all task which have this member as responsible
+
+--addTask(task: Task)--
+    -throws an error when task is not instance of Task
+    -throws an error when new task already exists
+    -add new task to the list
+
+--removeTask(id: string)--
+    -throws an error when task with this id is not founded
+    -remove task when id is valid
+    -reset all dependancies with this task
+
+--validateTask(id: string)--
+    -throws an error when task with this id is not founded
+    -set listState
+    -update startDate or status of dependencies
+
+--getClosedTaskByDueDate(date, projectId)--
+    -- -sort tasks normally
+    -sort when task status is true
+
+--getTaskByMember(id, projectId)--    
+    -getTask by member

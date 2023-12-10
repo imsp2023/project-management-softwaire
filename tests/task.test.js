@@ -129,6 +129,32 @@ QUnit.module("Task", () => {
             assert.throws(()=>{
                 new Task(props);
             }, new Error("This dueDate should be after startDate"));
+        });
+
+        QUnit.module("ChildDependsOn", () => {
+            test("throws an exception when dependanceType isn't 'Child'", (assert) => {
+                let task = new Task({title: "My task title"});
+  
+                assert.throws(() => {
+                  new Task({title: "Task 1", dependences: {dependenceType: ""} });
+                }, new Error("dependenceType should be 'child'"));
+              });
+
+            test("throws an exception when task attribute isn't a object of class Task", (assert) => {
+              let task = new Task({title: "My task title"});
+
+              assert.throws(() => {
+                new Task({title: "Task 1", dependences: {dependenceType: "child"} });
+              }, new Error("task for child dependence should be class of Task"));
+            });
+
+            test("throws an exception when params attribute is provided but not string", (assert) => {
+                let task = new Task({title: "My task title"});
+  
+                assert.throws(() => {
+                  new Task({title: "Task 1", dependences: {task: task, dependenceType: "child"} });
+                }, new Error("params attribute for childDependance should be string"));
+            });
         })
     })
 

@@ -13,9 +13,8 @@ class Task {
     #priority = "";
     #startDate = new Date();
     #dueDate = new Date();
-    #dependances = [];
+    #dependences = [];
     #taskResponsible = "";
-
     
     #validateTitle(value) {
         if(!value)
@@ -70,11 +69,21 @@ class Task {
         this.#validatePriority(props.priority);
         this.#validateStartDate(props.startDate);
 
+        if(props.dependences){
+            if(!props.dependences.dependenceType || props.dependences.dependenceType != "child")
+                throw new Error("dependenceType should be 'child'");
+
+            else if(!props.dependences.task || !props.dependences.task instanceof Task)
+                throw new Error("task for child dependence should be class of Task");
+
+            else if(!props.dependences.params || typeof props.dependences.params == "string")
+                throw new Error("params attribute for childDependance should be string");
+            else   
+                this.#dependences.push(props.dependences);
+        }
+
         // Initialize attributes
         this.#id = generateId();
-        
-        console.log(this.#id);
-
         this.#title = props.title;
         this.#description = props.description;
         this.#status = props.status;
@@ -90,8 +99,7 @@ class Task {
             this.#startDate = initializeHourMinSec(new Date(props.startDate));
         else
             this.#startDate = initializeHourMinSec(new Date());
-
-
+    
         this.#validateDueDate(props.dueDate);
         this.#dueDate = initializeHourMinSec(new Date(props.dueDate));
     }

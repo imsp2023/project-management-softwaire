@@ -18,10 +18,10 @@ class Task {
   }
 
   dependsOn(task, dependanceType, params = "") {
-    if (task == undefined) throw new Error("parameter task is required");
+    if (task == undefined) throw new Error("missing parameters");
 
     if (!(task instanceof Task))
-      throw new Error("parameter task should be a object of class task");
+      throw new Error("the task parameter should be a Task object");
 
     if (task == this)
       throw new Error("parameter task shouldn't same as task depends");

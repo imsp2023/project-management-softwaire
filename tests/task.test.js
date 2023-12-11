@@ -2,27 +2,35 @@ const { test } = QUnit;
 
 QUnit.module("Task", () => {
   QUnit.module("dependsOn", () => {
-    test("throws an exception when the parameter task isn't specified", (assert) => {
+    //Vérifier que la tache existe dans le register si on utilise taskId
+    test("throws an exception when no parameters is provided", (assert) => {
       let tk = new Task({});
       assert.throws(() => {
         tk.dependsOn();
-      }, new Error("parameter task is required"));
+      }, new Error("missing parameters"));
     });
 
-    test("throws an exception when the parameter task isn't a object of class Task", (assert) => {
+    test("throws an exception when the task parameter isn't a Task object", (assert) => {
       let tk = new Task({});
       assert.throws(() => {
         tk.dependsOn({});
-      }, new Error("parameter task should be a object of class task"));
+      }, new Error("the task parameter should be a Task object"));
     });
 
+    //On a une dependance cyclique à gerer
+    //Définir les differents de dependance cyclique
     test("throws an exception when the parameter task is same as task depends", (assert) => {
       let tk = new Task({});
       assert.throws(() => {
         tk.dependsOn(tk);
-      }, new Error("parameter task shouldn't same as task depends"));
+      }, new Error("the task parameter shouldn't same as task depends"));
     });
 
+    //tk1.dependOn(tk2, "DD")
+    //tk2.dependOn(tk3, "DD")
+    //tk3.dependOn(tk1, "DD")
+
+    //Choisir une dependance par défaut (DD) plutot que de lever une exception
     test("throws an exception when the parameter dependanceType isn't specified", (assert) => {
       let tk = new Task({});
       let tk1 = new Task({});
@@ -54,7 +62,7 @@ QUnit.module("Task", () => {
       assert.true(tk1.getStartDate() >= tk.getStartDate());
     });
 
-    test("with invalid dueDate when i apply FF dependancie, dueDate should be change", (assert) => {
+    test("with invalid dueDate when i apply FF dependancie, dueDate should be changed", (assert) => {
       let tk = new Task({ dueDate: new Date(2026, 0, 30) });
       let tk1 = new Task({ dueDate: new Date(2026, 0, 25) });
       tk1.dependsOn(tk, "FF");
@@ -68,6 +76,9 @@ QUnit.module("Task", () => {
       assert.true(tk1.getStartDate() >= tk.getDueDate());
     });
 
+    //Ne pas lever une exception et plutôt ne pas autoriser une même dependance deux fois entre la même tâche
+    //Reflechir à tk.dependsOn(tk1, "DD"); et tk.dependsOn(tk1, "FF")
+    //Essayer d'explorer toutes les combinaisons de dependance sur une tache avec d'autres
     test("throws an exception when a DD dependency is applied between two tasks have this dependency", (assert) => {
       let tk = new Task({ startDate: new Date(2026, 0, 2) });
       let tk1 = new Task({ startDate: new Date(2025, 0, 2) });
@@ -97,6 +108,7 @@ QUnit.module("Task", () => {
   });
 
   QUnit.module("assignedTo", () => {
+    //Vérifier que le membre existe dans le register (son username dans le membre)
     test("throws an error when parameter username is not specified", (assert) => {
       let tk = new Task({});
       assert.throws(() => {

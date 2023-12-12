@@ -21,8 +21,27 @@
     -update startDate or status of dependencies
 
 --getClosedTaskByDueDate(date, projectId)--
-    -- -sort tasks normally
+    -sort tasks normally
     -sort when task status is true
 
 --getTaskByMember(id, projectId)--    
     -getTask by member
+
+# Task
+    -ne pas vérifier si la description, le title, startDate sont de type string, mais faire une conversion en string
+    -lors de lé mise à jour d'une date, s'assurer que les dépendances enfant ou autre ont des dates convenables 
+
+# Gestion des dépendances dans la class task
+    -dates de début et de fin des tâches parent enfant
+    -gestion de dépendancies FF, DD, FD en faisant appel à la set
+    -faire un set pour aussi pour aussi la relation 
+    -gérer les dépendances cycliques
+
+# Gestion de la class Project
+    -add task and remove task or project
+    -validateTask
+    -getClosedTasksByDueDate
+    -getClosedTasksByMember
+    -validateTask
+
+# Simuler la class register

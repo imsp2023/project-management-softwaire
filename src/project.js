@@ -1,174 +1,99 @@
-const dateOfDay = new Date();
-const year = dateOfDay.getFullYear();
-const month = dateOfDay.getMonth() + 1;
-const day = dateOfDay.getDate();
-const completeDate = `${year}-${month}-${day}`;
-const regex = /^\d{4}\-\d{1,2}\-\d{1,2}$/;
+const regex = /(0[1-9]|[12][0-9]|3[01])(\/|-)(0[1-9]|1[1,2])(\/|-)(19|20)\d{2}/;
 
 class Project {
-  #id = "";
-  #name = "";
-  #responsible = "";
-  #description = "";
-  #startDate = "";
-  #dueDate = "";
-  #status = "";
+  id = undefined;
+  _name = undefined;
+  _responsible = undefined;
+  _description = undefined;
+  _startDate = "";
+  _dueDate = "";
+  _status = undefined; 
+  members = [];
 
-  constructor(props) {
-    if (props == undefined) throw new Error("parameters are required");
-    if (props.id == undefined) this.#id = this.getRandomUnique(1, 10000, []);
-    else {
-      if (props && (typeof props.id != "string" || props.id == ""))
-        throw new Error("id attribute should be a non-empty string");
-      this.#id = props.id;
-    }
-    if (props.name == undefined) throw new Error("parameter name is required");
-    if (props && (typeof props.name != "string" || props.name == ""))
-      throw new Error("name attribute should be a non-empty string");
-    this.#name = props.name;
-    if (props && props.responsible == undefined) this.#responsible = "";
-    else {
-      if (props && typeof props.responsible != "string")
-        throw new Error("responsible attribute should be a string");
-      this.#responsible = props.responsible;
-    }
-    if (props && props.description == undefined) this.#description = "";
-    else {
-      if (props && typeof props.description != "string")
-        throw new Error("description attribute should be a string");
-      this.#description = props.description;
-    }
-    if (props && props.status == undefined) this.#status = "";
-    else {
-      if (props && typeof props.status != "string")
-        throw new Error("status attribute should be a string");
-      this.#status = props.status;
-    }
-    if (props && props.startDate == undefined) this.#startDate = completeDate;
-    else {
-      if (props && regex.test(props.startDate) == false)
-        throw new Error("date should be in yyyy-mm-dd format");
-      let partsOfDate = props.startDate.split("-");
-      let partOfDateNumber = partsOfDate.map(Number);
-      if (partOfDateNumber[1] <= 0 || partOfDateNumber[1] > 12)
-        throw new Error("the month should be between 1 and 12");
-      if (partOfDateNumber[2] <= 0 || partOfDateNumber[2] > 31)
-        throw new Error("the day should be between 1 and 31");
-      if (
-        partOfDateNumber[0] % 4 == 0 ||
-        (partOfDateNumber[0] % 100 == 0 && partOfDateNumber[0] % 400 == 0)
-      ) {
-        if (partOfDateNumber[1] == 2)
-          if (partOfDateNumber[2] <= 0 || partOfDateNumber[2] > 29)
-            throw new Error(
-              "year is leap year so the day should be between 1 and 29"
-            );
-      }
-      if (partOfDateNumber[1] == 2)
-        if (partOfDateNumber[2] <= 0 || partOfDateNumber[2] > 28)
-          throw new Error(
-            "it's frebruary so the day should be between 1 and 28"
-          );
-      this.#startDate = props.startDate;
-    }
-
-    if (props && props.dueDate == undefined) this.#dueDate = "";
-    else {
-      if (props && regex.test(props.dueDate) == false)
-        throw new Error("date should be in yyyy-mm-dd format");
-      let partsOfDate = props.dueDate.split("-");
-      let partOfDateNumber = partsOfDate.map(Number);
-      if (partOfDateNumber[1] <= 0 || partOfDateNumber[1] > 12)
-        throw new Error("the month should be between 1 and 12");
-      if (partOfDateNumber[2] <= 0 || partOfDateNumber[2] > 31)
-        throw new Error("the day should be between 1 and 31");
-      if (
-        partOfDateNumber[0] % 4 == 0 ||
-        (partOfDateNumber[0] % 100 == 0 && partOfDateNumber[0] % 400 == 0)
-      ) {
-        if (partOfDateNumber[1] == 2)
-          if (partOfDateNumber[2] <= 0 || partOfDateNumber[2] > 29)
-            throw new Error(
-              "year is leap year so the day should be between 1 and 29"
-            );
-      }
-      if (partOfDateNumber[1] == 2)
-        if (partOfDateNumber[2] <= 0 || partOfDateNumber[2] > 28)
-          throw new Error(
-            "it's frebruary so the day should be between 1 and 28"
-          );
-      this.#dueDate = props.dueDate;
-    }
-  }
-
-  updateDescription(description) {
-    if (description == undefined)
-      throw new Error("parameter description is required");
-    if (typeof description != "string")
-      throw new Error("description attribute should be a string");
-    this.#description = description;
-  }
-
-  updateName(name) {
-    if (name == undefined) throw new Error("parameter name is required");
-    if (typeof name != "string" || name == "")
-      throw new Error("name attribute should be a non-empty string");
-    this.#name = name;
-  }
-
-  assignedTo(username) {
-    if (username == undefined)
-      throw new Error("parameter username is required");
-    if (typeof username != "string" || username == "")
-      throw new Error("username attribute should be a non-empty string");
-    this.#responsible = username;
-  }
-
-  /**
-   * getters
-   */
-  getId() {
-    return this.#id;
-  }
-
-  getName() {
-    return this.#name;
-  }
-
-  getResponsible() {
-    return this.#responsible;
-  }
-
-  getDescription() {
-    return this.#description;
-  }
-
-  getStartDate() {
-    return this.#startDate;
-  }
-
-  getDueDate() {
-    return this.#dueDate;
-  }
-
-  getStatus() {
-    return this.#status;
+  constructor(props = undefined) {
+    if (!props) 
+      throw new Error(MISSING_PARAMETERS);
+    if (!props.id || props.id == "")
+      this.id = _uuid.generate();
+    else
+      this.id = props.id.toString();
+    if (!props.name) 
+      throw new Error(MISSING_PARAMETERS);
+    if (props.name == "")
+      throw new Error(MISSING_PARAMETERS);
+    this.name = props.name.toString();
+    if (props.members && !Array.isArray(props.members))
+      throw new  Error(INVALID_TYPE_PARAMETER);
+    if (props.members)
+      props.members.map((username)=>{
+        this.addMember(username);
+      });
+    if (props.responsible)
+      this.responsible = props.responsible;
+    if (props.description) 
+      this.description = props.description;
+    if (props.status) 
+      this.status = props.status;
+    if (props.startDate)
+        this.startDate = props.startDate;
+    if (props.dueDate) 
+      this.dueDate = props.dueDate;
   }
 
   /**
    * setters
-   */
-  setId(id) {
-    this.#id = id;
+   */  
+  addMember(username){
+    var memberExist;
+    if (this.members.includes(username))
+      return;
+    memberExist = Register.isMemberExist(username);
+    if (!memberExist)
+      Register.saveMember({username: username});
+    this.members.push(username);    
   }
 
-  getRandomUnique(min, max, exclude) {
-    let randomValue;
-    do {
-      randomValue = Math.floor(Math.random() * (max - min + 1)) + min;
-    } while (exclude.includes(randomValue));
+  set startDate(value){
+    if (!regex.test(value))
+      throw new Error(INVALID_DATE_FORMAT);
+    this._startDate = value;
+  }
 
-    exclude.push(randomValue);
-    return randomValue;
+  set endDate(value){
+    if (!regex.test(value))
+      throw new Error(INVALID_DATE_FORMAT);
+    this._endDate = value;
+  }
+
+  set status(value){
+    this._status = value.toString();
+  }
+
+  set responsible(value){
+    var memberExite;
+    if (!value)
+      throw new Error(MISSING_PARAMETERS);
+    if (!this.members.includes(value)){
+      memberExite = Register.isMemberExist(value);
+      if (memberExite)
+        this.members.push(value);
+      else
+        throw new Error(INEXISTING_MEMBER);
+    }
+    this._responsible = value;
+  }
+
+  set description(value){
+    if (!value)
+      throw new Error(MISSING_PARAMETERS);
+    this._description = value.toString();
+  }
+
+  set name(value){
+    if (!value)
+      throw new Error(MISSING_PARAMETERS);
+    if (value && value == "")
+      throw new Error(NON_EMPTY_STRING_VALUE);
+    this._value = value.toString();
   }
 }

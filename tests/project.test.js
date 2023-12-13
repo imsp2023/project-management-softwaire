@@ -1,225 +1,278 @@
 const { test } = QUnit;
-
+let spy;
 QUnit.module("Project", () => {
-  QUnit.module("constructor", () => {
+  QUnit.module("constructor", (hooks) => {
+    hooks.beforeEach(function(){
+      mock = sinon.mock('');
+    });
+
     test("throws an error when parameters are not specified", (assert) => {
       assert.throws(() => {
         new Project();
-      }, new Error("parameters are required"));
+      }, new Error(MISSING_PARAMETERS));
     });
 
-    test("throws an error when parameter id is not a string", (assert) => {
-      assert.throws(() => {
-        new Project({ id: 1 });
-      }, new Error("id attribute should be a non-empty string"));
+    test("with undefined id, _uuid.generate should be called", (assert) =>{
+      spy = sinon.spy(_uuid, 'generate');
+      var pj = new Project({ name:"iwe"});
+      assert.true(spy.calledOnce);
     });
 
-    test("throws an error when parameter id is a empty string", (assert) => {
-      assert.throws(() => {
-        new Project({ id: "" });
-      }, new Error("id attribute should be a non-empty string"));
+    test("with an empty string as id, _uuid.generate should be called", (assert) => {
+      spy = sinon.spy(_uuid, 'generate');
+      var pj = new Project({id: "", name: "iwe"});
+      assert.true(spy.calledOnce);
     });
 
-    test("throws an error when parameter name is not specified", (assert) => {
+    test("id should be saved as a string", (assert) => {
+      var pj = new Project({});
+      var stub = sinon.stub(_uuid, 'generate').callsFake(function fn(){
+          return "feuyvfefv";
+      });
+      assert.equal(typeof pj.id, 'string', 'the type of id is a string');
+    });
+
+    test("throws an error when name parameter is not specified", (assert) => {
       assert.throws(() => {
         new Project({});
-      }, new Error("parameter name is required"));
+      }, new Error(MISSING_PARAMETERS));
     });
 
-    test("throws an error when parameter name is not a string", (assert) => {
-      assert.throws(() => {
-        new Project({ name: 1 });
-      }, new Error("name attribute should be a non-empty string"));
-    });
-
-    test("throws an error when parameter name is a empty string", (assert) => {
+    test("throws an error when name parameter is an empty string", (assert) => {
       assert.throws(() => {
         new Project({ name: "" });
-      }, new Error("name attribute should be a non-empty string"));
+      }, new Error(NON_EMPTY_STRING_VALUE));
     });
 
-    test("throws an error when parameter responsible isn't string", (assert) => {
-      assert.throws(() => {
-        new Project({ name: "fhbvrh", responsible: 1 });
-      }, new Error("responsible attribute should be a string"));
+    test("name should be saved as a string", (assert) => {
+      var pj = new Project({id: "azer", name: 23});
+      assert.equal(typeof pj.name, 'string', 'name is a string');
     });
 
-    test("throws an error when parameter description isn't string", (assert) => {
-      assert.throws(() => {
-        new Project({ name: "fhbvrh", description: 1 });
-      }, new Error("description attribute should be a string"));
+    test("with responsible attribute specified, set responsible should be called", (assert) => {
+      var pj = new Project({id: "azer", name: 'iwe'});
+      var spy = sinon.spy(pj, 'responsible', ['set']);
+      assert.true(spy.set.calledOnce);
     });
 
-    test("throws an error when parameter status isn't string", (assert) => {
-      assert.throws(() => {
-        new Project({ name: "fhbvrh", status: 1 });
-      }, new Error("status attribute should be a string"));
+    test("with description attribute specified, setDescription should be called", (assert) => {
+      var pj = new Project({id: "azer", name: 'iwe'});
+      var spy = sinon.spy(pj, 'description', ['set']);
+      assert.true(spy.set.calledOnce);
     });
 
-    test("throws an error when the startDate is in incorrect format", (assert) => {
-      assert.throws(() => {
-        new Project({ name: "fhbvrh", startDate: "2020/12/01" });
-      }, new Error("date should be in yyyy-mm-dd format"));
+    test("with status attribute specified, setStatus should be called", (assert) => {
+      var pj = new Project({id: "azer", name: 'iwe'});
+      var spy = sinon.spy(pj, 'status', ['set']);
+      assert.true(spy.set.calledOnce);
     });
 
-    test("throws an error when the month of startDate isn't between 1 and 12", (assert) => {
-      assert.throws(() => {
-        new Project({ name: "fhbvrh", startDate: "2020-20-01" });
-      }, new Error("the month should be between 1 and 12"));
+    test("with startDate attribute specified, setStartDate should be called", (assert) => {
+      var pj = new Project({id: "azer", name: 'iwe'});
+      var spy = sinon.spy(pj, 'startDate', ['set']);
+      assert.true(spy.set.calledOnce);
     });
 
-    test("throws an error when the day of startDate isn't between 1 and 31", (assert) => {
-      assert.throws(() => {
-        new Project({ name: "fhbvrh", startDate: "2020-12-40" });
-      }, new Error("the day should be between 1 and 31"));
+    test("throws an exception when members attribute should be an array",(assert) =>{
+      var props = {id: "azer", name: 'iwe', members: ""};
+      assert.throws(()=>{
+        new Project(props);
+      }, INVALID_TYPE_PARAMETER);
     });
 
-    test("throws an error if the startDate year is leap year, the month is February and the date isn't between 1 and 29", (assert) => {
-      assert.throws(() => {
-        new Project({ name: "fhbvrh", startDate: "2012-2-30" });
-      }, new Error("year is leap year so the day should be between 1 and 29"));
+    test("with members attribute specified, addMembers should be called",(assert) =>{
+      var props = {id: "azer", name: 'iwe', members: ['roland', 'alberta']};
+      var pj = new Project(props);
+      var spy = sinon.spy(pj, 'addMember');
+      assert.equal(spy.callCount, props.members.length);
     });
 
-    test("throws an error when the month is February for startDate and the day of date isn't between 1 and 29", (assert) => {
-      assert.throws(() => {
-        new Project({ name: "fhbvrh", startDate: "2013-2-29" });
-      }, new Error("it's frebruary so the day should be between 1 and 28"));
+    test("with valid input, project should be successfully created", (assert) =>{
+      var props = {id: "azer", name: "iwe"};
+      var pj = new Project(props);
+      assert.equal(pj.id, props.id, 'set id');
+      assert.equal(pj.name, props.name, 'set name');
     });
-
-    test("throws an error when the dueDate is in incorrect format", (assert) => {
-      assert.throws(() => {
-        new Project({ name: "fhbvrh", dueDate: "2020/12/01" });
-      }, new Error("date should be in yyyy-mm-dd format"));
-    });
-
-    test("throws an error when the month of dueDate isn't between 1 and 12", (assert) => {
-      assert.throws(() => {
-        new Project({ name: "fhbvrh", dueDate: "2020-20-01" });
-      }, new Error("the month should be between 1 and 12"));
-    });
-
-    test("throws an error when the day of dueDate isn't between 1 and 31", (assert) => {
-      assert.throws(() => {
-        new Project({ name: "fhbvrh", dueDate: "2020-12-40" });
-      }, new Error("the day should be between 1 and 31"));
-    });
-
-    test("throws an error if the dueDate year is leap year, the month is February and the date isn't between 1 and 29", (assert) => {
-      assert.throws(() => {
-        new Project({ name: "fhbvrh", dueDate: "2012-2-30" });
-      }, new Error("year is leap year so the day should be between 1 and 29"));
-    });
-
-    test("throws an error when the month is February for dueDate and the day of date isn't between 1 and 29", (assert) => {
-      assert.throws(() => {
-        new Project({ name: "fhbvrh", startDate: "2013-2-29" });
-      }, new Error("it's frebruary so the day should be between 1 and 28"));
-    });
-
-    //Faire la vérification des affectations
   });
 
-  QUnit.module("updateDescription", () => {
+  QUnit.module("set description setter", () => {
     test("throws an error when parameter description isn't specified", (assert) => {
-      let p = new Project({ name: "dhvbhfre" });
+      let p = new Project({ name: "iwe" });
       assert.throws(() => {
-        p.updateDescription();
-      }, new Error("parameter description is required"));
+        p.description = undefined;
+      }, new Error(MISSING_PARAMETERS));
     });
 
-    test("throws an error when parameter description isn't a string", (assert) => {
+    test("description should be saved as string", (assert) => {
       let p = new Project({ name: "dhvbhfre" });
-      assert.throws(() => {
-        p.updateDescription(1);
-      }, new Error("description attribute should be a string"));
+      p.description = 123;
+      assert.equal(typeof p.description, 'string');
+    });
+
+    test("description should be saved properly", (assert) => {
+      let p = new Project({ name: "iwe" });
+      p.description  = "iwe description";
+      assert.equal(p.description, 'iwe description');
     });
   });
 
-  QUnit.module("updateName", () => {
-    test("throws an error when parameter name isn't specified", (assert) => {
-      let p = new Project({ name: "dhvbhfre" });
+  QUnit.module("set name setter", () => {
+    test("throws an error when name parameter is not specified", (assert) => {
+      let p = new Project({ name: "iwe" });
       assert.throws(() => {
-        p.updateName();
-      }, new Error("parameter name is required"));
+        p.name = undefined;
+      }, new Error(MISSING_PARAMETERS));
     });
 
-    test("throws an error when parameter name isn't a string", (assert) => {
-      let p = new Project({ name: "dhvbhfre" });
+    test("throws an error when name parameter is an empty string", (assert) => {
+      let p = new Project({ name: "iwe" });
       assert.throws(() => {
-        p.updateName(1);
-      }, new Error("name attribute should be a non-empty string"));
+        p.name = "";
+      }, new Error(NON_EMPTY_STRING_VALUE));
     });
 
-    test("throws an error when parameter name is a empty string", (assert) => {
-      let p = new Project({ name: "dhvbhfre" });
-      assert.throws(() => {
-        p.updateName("");
-      }, new Error("name attribute should be a non-empty string"));
+    test("name should be saved as a string", (assert) => {
+      let p = new Project({ name: "iwe" });
+      p.name = undefined;
+      p.name = 145;
+      assert.equal(typeof p.name, 'string');
+      assert.equal(p.name, '145');
+    });
+
+    test("name should be saved properly", (assert) => {
+      let p = new Project({ name: "iwe" });
+      p.name = "taskd";
+      assert.equal(p.name, 'taskd');
     });
   });
 
-  QUnit.module("assignedTo", () => {
-    test("throws an error when parameter username isn't specified", (assert) => {
-      let p = new Project({ name: "dhvbhfre" });
-      assert.throws(() => {
-        p.assignedTo();
-      }, new Error("parameter username is required"));
+  QUnit.module("set status setter", () => {
+    test("status should be saved as a string", (assert) => {
+      let p = new Project({ name: "iwe" });
+      p.status = undefined;
+      p.status = 2;
+      assert.equal(typeof p.name, 'string');
     });
 
-    test("throws an error when parameter username isn't a string", (assert) => {
-      let p = new Project({ name: "dhvbhfre" });
-      assert.throws(() => {
-        p.assignedTo(1);
-      }, new Error("username attribute should be a non-empty string"));
-    });
-
-    test("throws an error when parameter username is a empty string", (assert) => {
-      let p = new Project({ name: "dhvbhfre" });
-      assert.throws(() => {
-        p.assignedTo("");
-      }, new Error("username attribute should be a non-empty string"));
+    test("status should be saved properly", (assert) => {
+      let p = new Project({ name: "iwe" });
+      p.status = undefined;
+      p.status = "active";
+      assert.equal(p.status, 'active');
     });
   });
 
-  QUnit.module("getters", () => {
-    test("getId", (assert) => {
-      let p = new Project({ id: "2", name: "dhvbhfre" });
-      assert.true(p.getId() == "2");
-    });
-
-    test("getName", (assert) => {
-      let p = new Project({ name: "dhvbhfre" });
-      assert.true(p.getName() == "dhvbhfre");
-    });
-
-    test("getResponsible", (assert) => {
-      let p = new Project({ name: "dhvbhfre", responsible: "dvevfees" });
-      assert.true(p.getResponsible() == "dvevfees");
-    });
-
-    test("getDescription", (assert) => {
-      let p = new Project({
-        name: "dhvbhfre",
-        description: "Salut tout le monde",
+  QUnit.module("startDate setter", () => {
+    test("throws an error when startDate is invalid", (assert) => {
+      let p = new Project({ name: "iwe" });
+      var stub = sinon.stub(regex, 'test').callsFake(function fn(){
+        return false;
       });
-      assert.true(p.getDescription() == "Salut tout le monde");
+      assert.throws(()=>{
+        p.startDate = "22-12*2022";
+      }, INVALID_DATE_FORMAT);
     });
 
-    test("getStartDate", (assert) => {
-      let p = new Project({ name: "dhvbhfre", startDate: "2013-12-01" });
-      assert.true(p.getStartDate() == "2013-12-01");
-    });
-
-    test("getDueDate", (assert) => {
-      let p = new Project({ name: "dhvbhfre", dueDate: "2023-12-01" });
-      assert.true(p.getDueDate() == "2023-12-01");
-    });
-
-    test("getStatus", (assert) => {
-      let p = new Project({ name: "dhvbhfre", status: "" });
-      assert.true(p.getStatus() == "");
+    test("with valid startDate, startDate should be saved properly", (assert) => {
+      let p = new Project({ name: "iwe" });
+      var stub = sinon.stub(regex, 'test').callsFake(function fn(){
+        return true;
+      });
+      p.startDate = "22-12-2022"
+      assert.equal(p.startDate, '22-12-2022');
     });
   });
 
-  
+  QUnit.module("endDate setter", () => {
+    test("throws an error when endDate is invalid", (assert) => {
+      let p = new Project({ name: "iwe" });
+      var stub = sinon.stub(regex, 'test').callsFake(function fn(){
+        return false;
+      });
+      assert.throws(()=>{
+        p.endDate = "22-12*2022";
+      }, 'date should be in DD-MM-YYYY or DD/MM/YYYY format');
+    });
+
+    test("with valid endDate, startDate should be saved properly", (assert) => {
+      let p = new Project({ name: "iwe" });
+      var stub = sinon.stub(regex, 'test').callsFake(function fn(){
+        return true;
+      });
+      p.dueDate = "22-12-2022"
+      assert.equal(p.dueDate, '22-12-2022');
+    });
+  });
+
+  QUnit.module("addMember", () => {
+    test("with an already existing member, no more adding", (assert) => {
+      let p = new Project({ name: "iwe" });
+      p.members = ['duamelo'];
+      p.addMember('duamelo');
+      assert.equal(p.members.length, 1);
+    });
+
+    test("isMemberExist should be called from Register", (assert) => {
+      let p = new Project({ name: "iwe" });
+      var spy = sinon.spy(Register, 'isMemberExist');
+      p.addMember('duamelo');
+      assert.true(spy.calledOnce);
+    });
+
+    test("with an existing member, addMember should save properly", (assert) => {
+      let p = new Project({ name: "iwe" });
+      p.members = [];
+      var stub = sinon.stub(Register, 'isMemberExist').callsFake(function fn(){
+        return true;
+      });
+      p.addMember('duamelo');
+      assert.equal(p.members[0], 'duamelo');
+    });
+  });
+
+  QUnit.module("responsible setter", () => {
+    test("throws an error when parameter username isn't specified", (assert) => {
+      let p = new Project({ name: "iwe" });
+      assert.throws(() => {
+        p.responsible = undefined;
+      }, new Error(MISSING_PARAMETERS));
+    });
+
+    test("with a member that's part of the project, responsible attribute should be updated", (assert) => {
+      let p = new Project({ name: "iwe" });
+      p.members = ['duamelo'];
+      assert.notOk(p.responsible);
+      p.responsible = 'duamelo';
+      assert.equal(p.responsible, 'duamelo');
+    });
+
+    test("with a member that's not part of the project, isMemberExist should be called from Register", (assert) => {
+      let p = new Project({ name: "iwe" });
+      p.members = [];
+      p.responsible = 'duamelo';
+      var spy = sinon.spy(Register, 'isMemberExist');
+      assert.true(spy.calledOnce);
+    });
+
+    test("with an existing member specified, responsible attribute should be updated", (assert) => {
+      let p = new Project({ name: "iwe" });
+      p.members = [];
+      var stub = sinon.stub(Register, 'isMemberExist').callsFake(function fn(){
+        return true;
+      });
+      p.responsible = 'duamelo';
+      assert.equal(p.members[0], 'duamelo');
+    });
+
+    test("with a member that's not enregistred, throws an exception", (assert) => {
+      let p = new Project({ name: "iwe" });
+      p.members = [];
+      var stub = sinon.stub(Register, 'isMemberExist').callsFake(function fn(){
+        return false;
+      });
+      assert.throws(()=>{
+        p.responsible = 'duamelo';
+      }, INEXISTING_MEMBER);
+    });
+  });
 });

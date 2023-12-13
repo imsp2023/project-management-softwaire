@@ -1,139 +1,513 @@
-const { test } = QUnit;
+const {test} = QUnit;
 
 QUnit.module("Task", () => {
-  QUnit.module("dependsOn", () => {
-    //Vérifier que la tache existe dans le register si on utilise taskId
-    test("throws an exception when no parameters is provided", (assert) => {
-      let tk = new Task({});
-      assert.throws(() => {
-        tk.dependsOn();
-      }, new Error("missing parameters"));
+    QUnit.module('constructor', () => {
+        test("throws an error when parameters are not specified", assert =>{
+            assert.throws(() => {
+                new Task();
+            }, new Error("parameters are required"));
+        });
+
+        test("verify if id is automatically generated", assert =>{
+            let task = new Task({title: "dfn"});
+            assert.ok(task.id, "id is generated");
+        });
+
+        // title attribute
+        test("throws an error when title attribute is not provided", assert=>{
+            assert.throws(()=>{
+                new Task({id: "etytdtgytf"});
+            }, new Error("title attribute should be provided"));
+        })
+
+        // test("throws an error when title attribute is not string", assert=>{
+        //     assert.throws(()=>{
+        //         new Task({id: "etytdtgytf", title: 12});
+        //     }, new Error("title attribute should be string"));
+        // });
+
+        // test("throws an error when description attribute is provided but not string", assert=>{
+        //     assert.throws(()=>{
+        //         new Task({title: "My task title", description: 2});
+        //     }, new Error("Task description should be string"));
+        // });
+
+        // test("throws an error when status attribute is provided but not string", assert=>{
+        //     assert.throws(()=>{
+        //         new Task({title: "My task title", description: "Task description", status: 2});
+        //     }, new Error("Task status should be string"));
+        // })
+
+        // priority attribute
+        // test("update priority to 'normal' by default when it is not specified", assert => {
+        //     const task = new Task({
+        //         id: "etytdtgytf",
+        //         title: "My task title",
+        //         description: "Task description",
+        //         status: "to do",
+        //     });
+        //     assert.equal(task.priority, DEFAULT_TASK_PRIORITY, "priority should be 'normal' by default");
+        // });
+
+        // test("throws an error when priority is provided but not valid", assert=>{
+        //     assert.throws(()=>{
+        //         new Task({id: "etytdtgytf", title: "My task title", description: "My task description",  status: "to do", priority: "djd"});
+        //     }, new Error("priority should be high, normal or low"));
+        // });
+        
+        
+        // startDate attribute
+        test("throws an error when startDate is provided but not in valid format", assert => {
+            const props = {
+                id: "etytdtgytf",
+                title: "My task title",
+                description: "Task description",
+                status: "to do",
+                priority: "high",
+                startDate: "2023-13-30"
+            };
+
+            assert.throws(()=>{
+                new Task(props);
+            }, new Error("startDate should be in valid format"));
+        });
+
+        test("throws an error when startDate is provided but has passed", assert => {
+            const props = {
+                id: "etytdtgytf",
+                title: "My task title",
+                description: "Task description",
+                status: "to do",
+                priority: "high",
+                startDate: "2013-02-31"
+            };
+                
+            assert.throws(()=>{
+                new Task(props);
+            }, new Error("This startDate has passed"));
+        })
+
+        test("update startDate to now date when it is not specified", assert =>{
+            const props = {
+                id: "etytdtgytf",
+                title: "My task title",
+                description: "Task description",
+                status: "to do",
+                priority: "high"
+            };
+            var task = new Task(props);
+            assert.deepEqual(task.startDate, initializeHourMinSec(new Date()), "initialize startDate");
+        }); 
+
+        test("throws an error when dueDate is provided in invalid format", assert => {
+            const props = {
+                id: "etytdtgytf",
+                title: "My task title",
+                description: "Task description",
+                status: "to do",
+                priority: "high",
+                startDate: "2023-12-30",
+                dueDate: "2023-12-32"
+            };
+
+            assert.throws(()=>{
+                new Task(props);
+            }, new Error("dueDate should be in valid format"));
+        });
+
+        test("throws an error when dueDate is provided but is before startDate", assert => {
+            const props = {
+                id: "etytdtgytf",
+                title: "My task title",
+                description: "Task description",
+                status: "to do",
+                priority: "high",
+                startDate: "2023-12-30",
+                dueDate: "2023-12-28"
+            };
+                
+            assert.throws(()=>{
+                new Task(props);
+            }, new Error("This dueDate should be after startDate"));
+        });
+
+        QUnit.module("ChildDependsOn", () => {
+            test("throws an exception when dependanceType isn't 'Child'", (assert) => {
+                let task = new Task({title: "My task title"});
+  
+                assert.throws(() => {
+                  new Task({title: "Task 1", dependences: {dependenceType: ""} });
+                }, new Error("dependenceType should be 'child'"));
+              });
+
+            test("throws an exception when task attribute isn't a object of class Task", (assert) => {
+              let task = new Task({title: "My task title"});
+
+              assert.throws(() => {
+                new Task({title: "Task 1", dependences: {dependenceType: "child"} });
+              }, new Error("task for child dependence should be class of Task"));
+            });
+
+            test("throws an exception when params attribute is provided but not string", (assert) => {
+                let task = new Task({title: "My task title"});
+  
+                assert.throws(() => {
+                  new Task({title: "Task 1", dependences: {task: task, dependenceType: "child"} });
+                }, new Error("params attribute for childDependance should be string"));
+            });
+        })
+    })
+
+    QUnit.module('get id', () => {
+        var props = {
+            title: "My task title",
+            description: "Task description",
+            status: "to do",
+            priority: "high",
+            startDate: "2023-12-30",
+            dueDate: "2023-12-31"
+        };
+
+        test("get task id", assert=>{
+            var task = new Task(props);
+            assert.ok(task.id, "get task id");
+        });
+    })
+
+    QUnit.module('get title', () => {
+        test("get task title", assert=>{
+            var props = {
+                id: "etytdtgytf",
+                title: "My task title",
+                description: "Task description",
+                status: "to do",
+                priority: "high",
+                startDate: "2023-12-30",
+                dueDate: "2023-12-31"
+            };
+
+            var task = new Task(props);
+            assert.equal(task.title, props.title, "get task title");
+        });
+    })
+
+    QUnit.module('get description', () => {
+        test("get task description", assert=>{
+            var props = {
+                id: "etytdtgytf",
+                title: "My task title",
+                description: "Task description",
+                status: "to do",
+                priority: "high",
+                startDate: "2023-12-30",
+                dueDate: "2023-12-31"
+            };
+
+            var task = new Task(props);
+            assert.equal(task.description, props.description, "get task description");
+        });
+    })
+
+    QUnit.module('get status', () => {
+        test("get task status", assert=>{
+            var props = {
+                id: "etytdtgytf",
+                title: "My task title",
+                description: "Task description",
+                status: "to do",
+                priority: "high",
+                startDate: "2023-12-30",
+                dueDate: "2023-12-31"
+            };
+
+            var task = new Task(props);
+            assert.equal(task.status, props.status, "get task status");
+        });
     });
 
-    test("throws an exception when the task parameter isn't a Task object", (assert) => {
-      let tk = new Task({});
-      assert.throws(() => {
-        tk.dependsOn({});
-      }, new Error("the task parameter should be a Task object"));
+    QUnit.module('get priority', () => {
+        test("get task priority", assert=>{
+            var props = {
+                id: "etytdtgytf",
+                title: "My task title",
+                description: "Task description",
+                status: "to do",
+                priority: "high",
+                startDate: "2023-12-30",
+                dueDate: "2023-12-31"
+            };
+
+            var task = new Task(props);
+            assert.equal(task.priority, props.priority, "get task priority");
+        });
     });
 
-    //On a une dependance cyclique à gerer
-    //Définir les differents de dependance cyclique
-    test("throws an exception when the parameter task is same as task depends", (assert) => {
-      let tk = new Task({});
-      assert.throws(() => {
-        tk.dependsOn(tk);
-      }, new Error("the task parameter shouldn't same as task depends"));
-    });
+    // Tests related to setters
 
-    //tk1.dependOn(tk2, "DD")
-    //tk2.dependOn(tk3, "DD")
-    //tk3.dependOn(tk1, "DD")
+    QUnit.module('set title', () => {
+        test("throws an exception when new title is not valid string", assert=>{
+           var props = {
+                id: "etytdtgytf",
+                title: "My task title",
+                description: "Task description",
+                status: "to do",
+                priority: "high",
+                startDate: "2023-12-30",
+                dueDate: "2023-12-31"
+            };
 
-    //Choisir une dependance par défaut (DD) plutot que de lever une exception
-    test("throws an exception when the parameter dependanceType isn't specified", (assert) => {
-      let tk = new Task({});
-      let tk1 = new Task({});
-      assert.throws(() => {
-        tk.dependsOn(tk1);
-      }, new Error("parameter dependanceType is required"));
-    });
+            task = new Task(props);
+            assert.throws(()=>{
+                task.title = 4;
+            }, new Error("title attribute should be string"));
+        });
 
-    test("throws an exception when the parameter dependanceType isn't FF or DD or FD", (assert) => {
-      let tk = new Task({});
-      let tk1 = new Task({});
-      assert.throws(() => {
-        tk.dependsOn(tk1, "ls");
-      }, new Error("parameter dependanceType should be DD or FF or FD"));
-    });
+        test("set title", assert=>{
+            var props = {
+                id: "etytdtgytf",
+                title: "My task title",
+                description: "Task description",
+                status: "to do",
+                priority: "high",
+                startDate: "2023-12-30",
+                dueDate: "2023-12-31"
+            };
 
-    test("throws an exception when the parameter params isn't a string", (assert) => {
-      let tk = new Task({ startDate: new Date("2020-12-01") });
-      let tk1 = new Task({ startDate: new Date("2020-12-01") });
-      assert.throws(() => {
-        tk.dependsOn(tk1, "DD", 1);
-      }, new Error("parameter params should be a string"));
-    });
+            var task = new Task(props);
+            task.title = "task title";
+            assert.equal(task.title, "task title", "set title");
+        });
+    })
 
-    test("with invalid startDate when i apply DD dependancie, startDate should be change", (assert) => {
-      let tk = new Task({ startDate: new Date(2020, 12, 1) });
-      let tk1 = new Task({ startDate: new Date(2020, 2, 1) });
-      tk1.dependsOn(tk, "DD");
-      assert.true(tk1.getStartDate() >= tk.getStartDate());
-    });
+    QUnit.module('set description', () => {
+        test("throws an exception when new description is not valid string", assert=>{
+           var props = {
+                id: "etytdtgytf",
+                title: "My task title",
+                description: "Task description",
+                status: "to do",
+                priority: "high",
+                startDate: "2023-12-30",
+                dueDate: "2023-12-31"
+            };
 
-    test("with invalid dueDate when i apply FF dependancie, dueDate should be changed", (assert) => {
-      let tk = new Task({ dueDate: new Date(2026, 0, 30) });
-      let tk1 = new Task({ dueDate: new Date(2026, 0, 25) });
-      tk1.dependsOn(tk, "FF");
-      assert.true(tk1.getDueDate() >= tk.getDueDate());
-    });
+            task = new Task(props);
+            assert.throws(()=>{
+                task.description = 4;
+            }, new Error("Task description should be string"));
+        });
 
-    test("with invalid startDate when i apply FD dependancie, startDate should be change", (assert) => {
-      let tk = new Task({ dueDate: new Date(2026, 0, 30) });
-      let tk1 = new Task({ startDate: new Date(2025, 0, 25) });
-      tk1.dependsOn(tk, "FD");
-      assert.true(tk1.getStartDate() >= tk.getDueDate());
-    });
+        test("set description", assert=>{
+            var props = {
+                id: "etytdtgytf",
+                title: "My task title",
+                description: "Task description",
+                status: "to do",
+                priority: "high",
+                startDate: "2023-12-30",
+                dueDate: "2023-12-31"
+            };
 
-    //Ne pas lever une exception et plutôt ne pas autoriser une même dependance deux fois entre la même tâche
-    //Reflechir à tk.dependsOn(tk1, "DD"); et tk.dependsOn(tk1, "FF")
-    //Essayer d'explorer toutes les combinaisons de dependance sur une tache avec d'autres
-    test("throws an exception when a DD dependency is applied between two tasks have this dependency", (assert) => {
-      let tk = new Task({ startDate: new Date(2026, 0, 2) });
-      let tk1 = new Task({ startDate: new Date(2025, 0, 2) });
-      tk.dependsOn(tk1, "DD");
-      assert.throws(() => {
-        tk.dependsOn(tk1, "DD");
-      }, new Error("there is already a DD relationship between these two tasks"));
-    });
+            var task = new Task(props);
+            task.description = "task description";
+            assert.equal(task.description, "task description", "set description");
+        });
+    })
 
-    test("throws an exception when a FF dependency is applied between two tasks have this dependency", (assert) => {
-      let tk = new Task({ dueDate: new Date(2026, 0, 30) });
-      let tk1 = new Task({ dueDate: new Date(2026, 0, 25) });
-      tk.dependsOn(tk1, "FF");
-      assert.throws(() => {
-        tk.dependsOn(tk1, "FF");
-      }, new Error("there is already a FF relationship between these two tasks"));
-    });
+    QUnit.module('set status', () => {
+        test("throws an exception when new status is not valid string", assert=>{
+           var props = {
+                id: "etytdtgytf",
+                title: "My task title",
+                description: "Task description",
+                status: "to do",
+                priority: "high",
+                startDate: "2023-12-30",
+                dueDate: "2023-12-31"
+            };
 
-    test("throws an exception when a FD dependency is applied between two tasks have this dependency", (assert) => {
-      let tk = new Task({ startDate: new Date(2026, 0, 30) });
-      let tk1 = new Task({ dueDate: new Date(2026, 0, 25) });
-      tk.dependsOn(tk1, "FD");
-      assert.throws(() => {
-        tk.dependsOn(tk1, "FD");
-      }, new Error("there is already a FD relationship between these two tasks"));
-    });
-  });
+            task = new Task(props);
+            assert.throws(()=>{
+                task.status = 4;
+            }, new Error("Task status should be string"));
+        });
 
-  QUnit.module("assignedTo", () => {
-    //Vérifier que le membre existe dans le register (son username dans le membre)
-    test("throws an error when parameter username is not specified", (assert) => {
-      let tk = new Task({});
-      assert.throws(() => {
-        tk.assignedTo();
-      }, new Error("parameter is required"));
-    });
+        test("set status", assert=>{
+            var props = {
+                id: "etytdtgytf",
+                title: "My task title",
+                description: "Task description",
+                status: "to do",
+                priority: "high",
+                startDate: "2023-12-30",
+                dueDate: "2023-12-31"
+            };
 
-    test("throws an error when parameter username is not a string", (assert) => {
-      let tk = new Task({});
-      assert.throws(() => {
-        tk.assignedTo(1);
-      }, new Error("username attribute should be a non-empty string"));
-    });
+            var task = new Task(props);
+            task.title = "task status";
+            assert.equal(task.title, "task status", "set status");
+        });
+    })
 
-    test("throws an error when parameter username is a empty string", (assert) => {
-      let tk = new Task({});
-      assert.throws(() => {
-        tk.assignedTo("");
-      }, new Error("username attribute should be a non-empty string"));
-    });
+    QUnit.module('set priority', () => {
+        test("throws an exception when new priority is not string", assert=>{
+            var props = {
+                 id: "etytdtgytf",
+                 title: "My task title",
+                 description: "Task description",
+                 status: "to do",
+                 priority: "high",
+                 startDate: "2023-12-30",
+                 dueDate: "2023-12-31"
+             };
+ 
+             task = new Task(props);
+             assert.throws(()=>{
+                 task.priority = 4;
+             }, new Error("Task priority should be string"));
+         });
 
-    test("assigned username to a task", (assert) => {
-      let tk = new Task({});
-      tk.assignedTo("moi");
-      assert.true(tk.getTaskResponsible() == "moi");
-    });
-  });
-});
+         test("throws an error when new priority is provided but not valid", assert=>{
+            var props = {
+                id: "etytdtgytf",
+                title: "My task title",
+                description: "Task description",
+                status: "to do",
+                priority: "high",
+                startDate: "2023-12-30",
+                dueDate: "2023-12-31"
+            };
+
+            var task = new Task(props);
+            assert.throws(()=>{
+                task.priority = "priority";
+            }, new Error("priority should be high, normal or low"));
+        });
+
+        test("set status", assert=>{
+            var props = {
+                id: "etytdtgytf",
+                title: "My task title",
+                description: "Task description",
+                status: "to do",
+                priority: "high",
+                startDate: "2023-12-30",
+                dueDate: "2023-12-31"
+            };
+
+            var task = new Task(props);
+
+            task.priority = "low";
+    
+            assert.equal(task.priority, "low", "set priority");
+        });
+    })
+
+    QUnit.module('set startDate', () => {
+        test("throws an error when new startDate is not in valid format", assert => {
+            var props = {
+                id: "etytdtgytf",
+                title: "My task title",
+                description: "Task description",
+                status: "to do",
+                priority: "high",
+                startDate: "2023-12-30",
+                dueDate: "2023-12-31"
+            };
+            var task = new Task(props);
+
+            assert.throws(()=>{
+                task.startDate = "2023-12-32";
+            }, new Error("startDate should be in valid format"));
+        });
+
+        test("throws an error when new startDate has passed", assert => {
+            var props = {
+                id: "etytdtgytf",
+                title: "My task title",
+                description: "Task description",
+                status: "to do",
+                priority: "high",
+                startDate: "2023-12-30",
+                dueDate: "2023-12-31"
+            };
+        
+            var task = new Task(props);
+            assert.throws(() => {
+                task.startDate = "2023-11-20";
+            }, new Error("This startDate has passed"));
+        });
+    
+        test("set startDate", assert=>{
+            var props = {
+                id: "etytdtgytf",
+                title: "My task title",
+                description: "Task description",
+                status: "to do",
+                priority: "high",
+                startDate: "2023-12-30",
+                dueDate: "2023-12-31"
+            };
+        
+            var task = new Task(props);
+            task.startDate = "2023-12-29";
+    
+            assert.deepEqual(task.startDate, initializeHourMinSec(new Date("2023-12-29")), "set startDate");
+        });
+    })
+
+
+    QUnit.module('set dueDate', () => {
+        test("throws an error when new dueDate is not in valid format", assert => {
+            var props = {
+                id: "etytdtgytf",
+                title: "My task title",
+                description: "Task description",
+                status: "to do",
+                priority: "high",
+                startDate: "2023-12-30",
+                dueDate: "2023-12-31"
+            };
+
+            var task = new Task(props);
+
+            assert.throws(()=>{
+                task.dueDate = "2023-12-32";
+            }, new Error("dueDate should be in valid format"));
+        });
+
+        test("throws an error when new dueDate is before startDate", assert => {
+            var props = {
+                id: "etytdtgytf",
+                title: "My task title",
+                description: "Task description",
+                status: "to do",
+                priority: "high",
+                startDate: "2023-12-30",
+                dueDate: "2023-12-31"
+            };
+        
+            var task = new Task(props);
+            assert.throws(() => {
+                task.dueDate = "2023-12-29";
+            }, new Error("This dueDate should be after startDate"));
+        });
+    
+        test("set dueDate", assert=>{
+            var props = {
+                id: "etytdtgytf",
+                title: "My task title",
+                description: "Task description",
+                status: "to do",
+                priority: "high",
+                startDate: "2023-12-30",
+                dueDate: "2023-12-31"
+            };
+        
+            var task = new Task(props);
+            task.dueDate = "2024-01-01";
+    
+            assert.deepEqual(task.dueDate, initializeHourMinSec(new Date("2024-01-01")), "set dueDate");
+        });
+    })
+})

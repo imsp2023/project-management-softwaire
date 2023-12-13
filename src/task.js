@@ -72,9 +72,13 @@ class Task {
     
         this.#validateDueDate(props.dueDate);
         this.#dueDate = initializeHourMinSec(new Date(props.dueDate));
+
+        // parentDependencie
+        if(props.parent)
+            this.setParent(props.parent);
     }
 
-    parent(value){
+    setParent(value){
         if(!value || !(value instanceof Task))
             throw new Error("task for child dependence should be class of Task");
         else if(value == this)

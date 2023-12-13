@@ -95,9 +95,14 @@ QUnit.module("Task", () => {
         });
 
         // Dependencies
+        test("when we have child dependencie, then setParent must be called one time", assert => {
+            let parentTask = new Task({title: "I'm parent task", startDate: "2023-11-17"});
+            var task = new Task({ title: "My task title", parent: parentTask});
 
-        // when only we have child dependancie, then setParent must be called one time
-
+            var spy = sinon.spy(task, 'setParent');
+            assert.ok(spy.calledOnce, "setParent is called one time");
+            spy.restore();
+        });
     });
 
     QUnit.module('setParent', () => {
@@ -105,7 +110,7 @@ QUnit.module("Task", () => {
             let task = new Task({title: "My task title"});
   
             assert.throws(() => {
-              task.parent("Task");
+              task.setParent("Task");
             }, new Error("task for child dependence should be class of Task"));
        });
 
@@ -113,7 +118,7 @@ QUnit.module("Task", () => {
             let task = new Task({title: "My task title"});
 
             assert.throws(() => {
-                task.parent(task);
+                task.setParent(task);
             }, new Error("this child shouldn't be parent of itself"));
        });
        
@@ -122,7 +127,7 @@ QUnit.module("Task", () => {
             let parentTask = new Task({title: "I'm parent task", startDate: "2023-11-17"});
 
             assert.throws(() => {
-                task.parent(parentTask);
+                task.setParent(parentTask);
             }, new Error("parent startDate should be before a child startDate"));
        });
 
@@ -131,7 +136,7 @@ QUnit.module("Task", () => {
             let parentTask = new Task({title: "I'm parent task", dueDate: "2024-11-15"});
 
             assert.throws(() => {
-                task.parent(parentTask);
+                task.setParent(parentTask);
             }, new Error("parent dueDate should be after a child dueDate"));
        });
     })
@@ -291,7 +296,7 @@ QUnit.module("Task", () => {
             };
             var task = new Task(props);
             var parentTask = new Task({title: "I'm parent task", startDate: "2023-11-17"});
-            task.parent(parentTask);
+            task.setParent(parentTask);
 
             assert.throws(()=>{
                 task.startDate = "2023-10-31";
@@ -363,7 +368,7 @@ QUnit.module("Task", () => {
             };
             var task = new Task(props);
             var parentTask = new Task({title: "I'm parent task", dueDate: "2024-11-17"});
-            task.parent(parentTask);
+            task.setParent(parentTask);
 
             assert.throws(()=>{
                 task.dueDate = "2024-11-18";

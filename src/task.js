@@ -1,137 +1,148 @@
 class Task {
-  #id = "";
-  #title = "";
-  #description = "";
-  #status = "";
-  #priority = "";
-  #startDate = new Date();
-  #dueDate = new Date();
+    id = false;
+    _title = undefined;
+    _description = undefined;
+    _status = undefined;
+    _priority = undefined;
+    _startDate = undefined;
+    _dueDate = undefined;
+    dependances = [];
+    _responsible = undefined;
+    _parentId = undefined;
 
-  #dependances = [];
-  #taskResponsible = "";
-
-  constructor(props) {
-    if (!props) throw new Error("parameters are required");
-    this.#id = props.id;
-    this.#startDate = props.startDate;
-    this.#dueDate = props.dueDate;
-  }
-
-  dependsOn(task, dependanceType, params = "") {
-    if (task == undefined) throw new Error("missing parameters");
-
-    if (!(task instanceof Task))
-      throw new Error("the task parameter should be a Task object");
-
-    if (task == this)
-      throw new Error("parameter task shouldn't same as task depends");
-
-    if (dependanceType == undefined)
-      throw new Error("parameter dependanceType is required");
-
-    if (
-      dependanceType != "DD" &&
-      dependanceType != "FF" &&
-      dependanceType != "FD"
-    )
-      throw new Error("parameter dependanceType should be DD or FF or FD");
-
-    if (typeof params != "string")
-      throw new Error("parameter params should be a string");
-
-    if (dependanceType == "DD" && this.getStartDate() < task.getStartDate())
-      this.#startDate = task.getStartDate();
-
-    if (dependanceType == "FF" && this.getDueDate() < task.getDueDate())
-      this.#dueDate = task.getDueDate();
-
-    if (dependanceType == "FD" && this.getStartDate() < task.getDueDate())
-      this.#startDate = task.getDueDate();
-
-    let informationOfDependance = {
-      taskId: task.getId(),
-      typeOfDependance: dependanceType,
-      parameters: params,
-    };
-    this.setDependances(informationOfDependance);
-
-    let compteur1 = 0;
-    for (let i = 0; i < this.getDependances().length; i++) {
-      if (
-        this.getDependances()[i].taskId == task.getId() &&
-        this.getDependances()[i].typeOfDependance == "DD"
-      ) {
-        compteur1++;
-      }
-      if (compteur1 > 1) {
-        this.getDependances().splice(i, 1);
-        throw new Error(
-          "there is already a DD relationship between these two tasks"
-        );
-      }
+    #validatePriority(value){
+        if(value && !taskPriority.includes(value))
+            throw new Error("priority should be high, normal or low");   
     }
 
-    let compteur2 = 0;
-    for (let i = 0; i < this.getDependances().length; i++) {
-      if (
-        this.getDependances()[i].taskId == task.getId() &&
-        this.getDependances()[i].typeOfDependance == "FF"
-      ) {
-        compteur2++;
-      }
-      if (compteur2 > 1) {
-        this.getDependances().splice(i, 1);
-        throw new Error(
-          "there is already a FF relationship between these two tasks"
-        );
-      }
+    #validateStartDate(value){
+        if(value && !validateDateFormat(value)) 
+            throw new Error("startDate should be in valid format");
+        else if(this.#parent != undefined && this.#parent.startDate && this.#parent.startDate > initializeHourMinSec(new Date(value)))
+            throw new Error("startDate should be before parent's startDate");
     }
 
-    let compteur3 = 0;
-    for (let i = 0; i < this.getDependances().length; i++) {
-      if (
-        this.getDependances()[i].taskId == task.getId() &&
-        this.getDependances()[i].typeOfDependance == "FD"
-      ) {
-        compteur3++;
-      }
-      if (compteur3 > 1) {
-        this.getDependances().splice(i, 1);
-        throw new Error(
-          "there is already a FD relationship between these two tasks"
-        );
-      }
+    #validateDueDate(value){
+        var date = initializeHourMinSec(new Date(value));
+    
+        if(value && !validateDateFormat(value)) 
+            throw new Error("dueDate should be in valid format");
+        
+        if(value && this.#startDate && date < this.#startDate) 
+            throw new Error("This dueDate should be after startDate");
+        
+        if(this.#parent != undefined && this.#parent.dueDate && this.#parent.dueDate < initializeHourMinSec(new Date(value)))
+            throw new Error("dueDate should be before parent's dueDate");
     }
-  }
 
-  assignedTo(username) {
-    if (username == undefined) throw new Error("parameter is required");
-    if (typeof username != "string" || username == "")
-      throw new Error("username attribute should be a non-empty string");
-    this.#taskResponsible = username;
-  }
+    constructor(props){
+        if(!props)
+            throw new Error("parameters are required");
+        
+        if(!props.title)
+            throw new Error("title attribute should be provided");
 
-  getId() {
-    return this.#id;
-  }
+        this.#validatePriority(props.priority);
+        this.#validateStartDate(props.startDate);
+ 
+        // Initialize attributes
+        this.#id = generateId();
+        this.#title = toString(props.title);
+        this.#description = toString(props.description);
+        this.#status = props.status;
+        
+        if(props.priority && taskPriority.includes(props.priority)){
+            this.#priority = props.priority;
+        }else{
+            this.#priority = DEFAULT_TASK_PRIORITY;
+        }
 
-  getStartDate() {
-    return this.#startDate;
-  }
+        var date = initializeHourMinSec(new Date(props.startDate));
+        if (props.startDate && validateDateFormat(props.startDate))
+            this.#startDate = initializeHourMinSec(new Date(props.startDate));
+        else
+            this.#startDate = initializeHourMinSec(new Date());
+    
+        this.#validateDueDate(props.dueDate);
+        this.#dueDate = initializeHourMinSec(new Date(props.dueDate));
 
-  getDueDate() {
-    return this.#dueDate;
-  }
+        // parentDependencie
+        if(props.parent)
+            this.setParent(props.parent);
+    }
 
-  setDependances(value) {
-    this.#dependances.push(value);
-  }
+    setParent(value){
+        if(!value || !(value instanceof Task))
+            throw new Error("task for child dependence should be class of Task");
+        else if(value == this)
+            throw new Error("this child shouldn't be parent of itself");
+        else if(value.startDate && this.#startDate && this.#startDate < value.startDate)
+            throw new Error("parent startDate should be before a child startDate");
+        else if(value.dueDate && this.#dueDate && this.#dueDate > value.dueDate)
+            throw new Error("parent dueDate should be after a child dueDate");
+        else
+            this.#parent = value;
+    }
 
-  getDependances() {
-    return this.#dependances;
-  }
+    // getters
+    get id(){
+        return this.#id;
+    }
 
-  getTaskResponsible() {
-    return this.#taskResponsible;
-  }
+    get title(){
+        return this.#title;
+    }
+
+    get description(){
+        return this.#description;
+    }
+
+    get status(){
+        return this.#status;
+    }
+    get priority(){
+        return this.#priority;
+    }
+
+    get startDate(){
+        return this.#startDate;
+    }
+
+    get dueDate(){
+        return this.#dueDate;
+    }
+
+    // setters
+    set title(value) {
+        if(!value)
+            throw new Error("title attribute should be provided");
+
+        this.#title = value.toString();
+    }
+
+    set description(value) {
+        this.#description = value.toString();
+    }
+
+    set status(value) {
+        this.#status = value.toString();
+    }
+
+    set priority(value) {
+        if(!value || typeof value != "string")
+            throw new Error("Task priority should be string");
+
+        this.#validatePriority(value);
+        this.#priority = value;
+    }
+
+    set startDate(value) {
+        this.#validateStartDate(value);
+        this.#startDate = initializeHourMinSec(new Date(value));;
+    }
+
+    set dueDate(value) {
+        this.#validateDueDate(value);
+        this.#dueDate = initializeHourMinSec(new Date(value));
+    }
 }

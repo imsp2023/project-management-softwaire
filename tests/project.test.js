@@ -69,7 +69,7 @@ QUnit.module("Project", () => {
       }, new Error(INVALID_TYPE_PARAMETER));
     });
 
-    test("with responsible attribute specified, set responsible should be called", (assert) => {
+    test("with responsible attribute specified, responsible setter should be called", (assert) => {
       let count = 0;
       sinon.stub(Project.prototype, "responsible").set(function setterFn() {
         count = 1;
@@ -81,7 +81,7 @@ QUnit.module("Project", () => {
       sinon.restore();
     });
 
-    test("with description attribute specified, setDescription should be called", (assert) => {
+    test("with description attribute specified, description setter should be called", (assert) => {
       let count = 0;
       sinon.stub(Project.prototype, "description").set(function setterFn() {
         count = 1;
@@ -93,7 +93,7 @@ QUnit.module("Project", () => {
       sinon.restore();
     });
 
-    test("with status attribute specified, setStatus should be called", (assert) => {
+    test("with status attribute specified, status setter should be called", (assert) => {
       let count = 0;
       sinon.stub(Project.prototype, "status").set(function setterFn() {
         count = 1;
@@ -105,13 +105,25 @@ QUnit.module("Project", () => {
       sinon.restore();
     });
 
-    test("with startDate attribute specified, setStartDate should be called", (assert) => {
+    test("with startDate attribute specified, startDate setter should be called", (assert) => {
       let count = 0;
       sinon.stub(Project.prototype, "startDate").set(function setterFn() {
         count = 1;
       });
 
-      var pj = new Project({id: "azer", name: 'iwe', startDate: '22-12-2023'});
+      var pj = new Project({id: "azer", name: 'iwe', startDate: '2023-12-22'});
+
+      assert.equal(count, 1);
+      sinon.restore();
+    });
+
+    test("with endDate attribute specified, endDate setter should be called", (assert) => {
+      let count = 0;
+      sinon.stub(Project.prototype, "endDate").set(function setterFn() {
+        count = 1;
+      });
+
+      var pj = new Project({id: "azer", name: 'iwe', endDate: '2023-12-22'});
 
       assert.equal(count, 1);
       sinon.restore();
@@ -250,11 +262,11 @@ QUnit.module("Project", () => {
         return true;
       });
       sinon.stub(Project.prototype, "startDate").get(function setterFn() {
-        return "22-12-2022";
+        return new Date("2022-12-20");
     });
 
-      p.startDate = "22-12-2022"
-      assert.equal(p.startDate, '22-12-2022');
+      p.startDate = "2022-12-20";
+      assert.deepEqual(p.startDate, new Date("2022-12-20"));
       sinon.restore();
     });
   });
@@ -277,11 +289,11 @@ QUnit.module("Project", () => {
         return true;
       });
       sinon.stub(Project.prototype, "endDate").get(function setterFn() {
-        return "22-12-2022";
+        return new Date("2022-12-20");
     });
 
-      p.endDate = "22-12-2022"
-      assert.equal(p.endDate, '22-12-2022');
+      p.endDate = "2022-12-20"
+      assert.deepEqual(p.endDate, new Date("2022-12-20"));
       sinon.restore();
     });
   });

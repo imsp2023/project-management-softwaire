@@ -5,509 +5,344 @@ QUnit.module("Task", () => {
         test("throws an error when parameters are not specified", assert =>{
             assert.throws(() => {
                 new Task();
-            }, new Error("parameters are required"));
+            }, new Error(MISSING_PARAMETERS));
         });
 
-        test("verify if id is automatically generated", assert =>{
-            let task = new Task({title: "dfn"});
-            assert.ok(task.id, "id is generated");
+        test("with undefined id, _uuid.generate should be called", assert =>{
+            let spy = sinon.spy(_uuid, 'generate');
+
+            let task = new Task({});
+      
+            assert.true(spy.calledOnce);
+            spy.restore();
         });
 
-        // title attribute
+        test("with an empty string as id, _uuid.generate should be called", (assert) => {
+            let spy = sinon.spy(_uuid, 'generate');
+      
+            let task = new Task({id: ""});
+      
+            assert.true(spy.calledOnce);
+            spy.restore();
+        });
+
         test("throws an error when title attribute is not provided", assert=>{
             assert.throws(()=>{
-                new Task({id: "etytdtgytf"});
-            }, new Error("title attribute should be provided"));
-        })
-
-        // test("throws an error when title attribute is not string", assert=>{
-        //     assert.throws(()=>{
-        //         new Task({id: "etytdtgytf", title: 12});
-        //     }, new Error("title attribute should be string"));
-        // });
-
-        // test("throws an error when description attribute is provided but not string", assert=>{
-        //     assert.throws(()=>{
-        //         new Task({title: "My task title", description: 2});
-        //     }, new Error("Task description should be string"));
-        // });
-
-        // test("throws an error when status attribute is provided but not string", assert=>{
-        //     assert.throws(()=>{
-        //         new Task({title: "My task title", description: "Task description", status: 2});
-        //     }, new Error("Task status should be string"));
-        // })
-
-        // priority attribute
-        // test("update priority to 'normal' by default when it is not specified", assert => {
-        //     const task = new Task({
-        //         id: "etytdtgytf",
-        //         title: "My task title",
-        //         description: "Task description",
-        //         status: "to do",
-        //     });
-        //     assert.equal(task.priority, DEFAULT_TASK_PRIORITY, "priority should be 'normal' by default");
-        // });
-
-        // test("throws an error when priority is provided but not valid", assert=>{
-        //     assert.throws(()=>{
-        //         new Task({id: "etytdtgytf", title: "My task title", description: "My task description",  status: "to do", priority: "djd"});
-        //     }, new Error("priority should be high, normal or low"));
-        // });
-        
-        
-        // startDate attribute
-        test("throws an error when startDate is provided but not in valid format", assert => {
-            const props = {
-                id: "etytdtgytf",
-                title: "My task title",
-                description: "Task description",
-                status: "to do",
-                priority: "high",
-                startDate: "2023-13-30"
-            };
-
-            assert.throws(()=>{
-                new Task(props);
-            }, new Error("startDate should be in valid format"));
+                new Task({});
+            }, new Error(MISSING_PARAMETERS));
         });
 
-        test("throws an error when startDate is provided but has passed", assert => {
-            const props = {
-                id: "etytdtgytf",
-                title: "My task title",
-                description: "Task description",
-                status: "to do",
-                priority: "high",
-                startDate: "2013-02-31"
-            };
-                
-            assert.throws(()=>{
-                new Task(props);
-            }, new Error("This startDate has passed"));
-        })
-
-        test("update startDate to now date when it is not specified", assert =>{
-            const props = {
-                id: "etytdtgytf",
-                title: "My task title",
-                description: "Task description",
-                status: "to do",
-                priority: "high"
-            };
-            var task = new Task(props);
-            assert.deepEqual(task.startDate, initializeHourMinSec(new Date()), "initialize startDate");
-        }); 
-
-        test("throws an error when dueDate is provided in invalid format", assert => {
-            const props = {
-                id: "etytdtgytf",
-                title: "My task title",
-                description: "Task description",
-                status: "to do",
-                priority: "high",
-                startDate: "2023-12-30",
-                dueDate: "2023-12-32"
-            };
+        test("throws an error when title attribute is not a string", assert=>{
 
             assert.throws(()=>{
-                new Task(props);
-            }, new Error("dueDate should be in valid format"));
+                new Task({title: 123});
+            }, new Error(INVALID_TYPE_PARAMETER));
         });
 
-        test("throws an error when dueDate is provided but is before startDate", assert => {
-            const props = {
-                id: "etytdtgytf",
-                title: "My task title",
-                description: "Task description",
-                status: "to do",
-                priority: "high",
-                startDate: "2023-12-30",
-                dueDate: "2023-12-28"
-            };
-                
-            assert.throws(()=>{
-                new Task(props);
-            }, new Error("This dueDate should be after startDate"));
-        });
-
-        QUnit.module("ChildDependsOn", () => {
-            test("throws an exception when dependanceType isn't 'Child'", (assert) => {
-                let task = new Task({title: "My task title"});
-  
-                assert.throws(() => {
-                  new Task({title: "Task 1", dependences: {dependenceType: ""} });
-                }, new Error("dependenceType should be 'child'"));
-              });
-
-            test("throws an exception when task attribute isn't a object of class Task", (assert) => {
-              let task = new Task({title: "My task title"});
-
-              assert.throws(() => {
-                new Task({title: "Task 1", dependences: {dependenceType: "child"} });
-              }, new Error("task for child dependence should be class of Task"));
+        test("with description attribute specified, description setter should be called", assert => {
+            let count = 0;
+            sinon.stub(Project.prototype, "description").set(function setterFn() {
+              count = 1;
             });
 
-            test("throws an exception when params attribute is provided but not string", (assert) => {
-                let task = new Task({title: "My task title"});
-  
-                assert.throws(() => {
-                  new Task({title: "Task 1", dependences: {task: task, dependenceType: "child"} });
-                }, new Error("params attribute for childDependance should be string"));
+            var t = new Task({title: 'title'});
+
+            assert.equal(count, 1);
+            sinon.restore();
+        });
+
+        test("with priority attribute specified, priority setter should be called", assert => {
+            let count = 0;
+            sinon.stub(Project.prototype, "priority").set(function setterFn() {
+              count = 1;
             });
-        })
-    })
 
-    QUnit.module('get id', () => {
-        var props = {
-            title: "My task title",
-            description: "Task description",
-            status: "to do",
-            priority: "high",
-            startDate: "2023-12-30",
-            dueDate: "2023-12-31"
-        };
+            var t = new Task({title: 'title'});
 
-        test("get task id", assert=>{
-            var task = new Task(props);
-            assert.ok(task.id, "get task id");
+            assert.equal(count, 1);
+            sinon.restore();
         });
-    })
 
-    QUnit.module('get title', () => {
-        test("get task title", assert=>{
-            var props = {
-                id: "etytdtgytf",
-                title: "My task title",
-                description: "Task description",
-                status: "to do",
-                priority: "high",
-                startDate: "2023-12-30",
-                dueDate: "2023-12-31"
-            };
+        test("with status attribute specified, status setter should  be called", assert =>{
+            let count = 0;
+            sinon.stub(Project.prototype, "status").set(function setterFn() {
+              count = 1;
+            });
 
-            var task = new Task(props);
-            assert.equal(task.title, props.title, "get task title");
+            var t = new Task({title: 'title'});
+
+            assert.equal(count, 1);
+            sinon.restore();
         });
-    })
 
-    QUnit.module('get description', () => {
-        test("get task description", assert=>{
-            var props = {
-                id: "etytdtgytf",
-                title: "My task title",
-                description: "Task description",
-                status: "to do",
-                priority: "high",
-                startDate: "2023-12-30",
-                dueDate: "2023-12-31"
-            };
+        test("with startDate attribute specified, startDate setter should be called", assert =>{
+            let count = 0;
+            sinon.stub(Project.prototype, "startDate").set(function setterFn() {
+              count = 1;
+            });
 
-            var task = new Task(props);
-            assert.equal(task.description, props.description, "get task description");
+            var t = new Task({title: 'title'});
+
+            assert.equal(count, 1);
+            sinon.restore();
         });
-    })
 
-    QUnit.module('get status', () => {
-        test("get task status", assert=>{
-            var props = {
-                id: "etytdtgytf",
-                title: "My task title",
-                description: "Task description",
-                status: "to do",
-                priority: "high",
-                startDate: "2023-12-30",
-                dueDate: "2023-12-31"
-            };
+        test(" with endDate attribute specified, endDate setter should be called", assert =>{
+            let count = 0;
+            sinon.stub(Project.prototype, "endDate").set(function setterFn() {
+              count = 1;
+            });
 
-            var task = new Task(props);
-            assert.equal(task.status, props.status, "get task status");
+            var t = new Task({title: 'title'});
+
+            assert.equal(count, 1);
+            sinon.restore();
+        });
+
+        test("with parentId attribute specified, parentId setter should be called", assert =>{
+            let count = 0;
+            sinon.stub(Project.prototype, "parent").set(function setterFn() {
+              count = 1;
+            });
+
+            var t = new Task({title: 'title'});
+
+            assert.equal(count, 1);
+            sinon.restore();
+        });
+
+        test("throws an exception when dependancies attribute is not an array", assert=>{
+
+            assert.throws(()=>{
+                new Task({title: 'title', dependances: ""});
+            }, INVALID_TYPE_PARAMETER);
+        });
+
+        test("with dependancies attribute specified, dependances setter should be called", assert=>{
+            let count = 0;
+            sinon.stub(Project.prototype, "dependances").callsFake(function fakeFn() {
+              count++;
+            });
+      
+            let props = {title: 'title', dependances: ['eetyzeztfd', 'ffgffgggf', 'gghghhghggh']};
+            let t = new Task(props);
+
+            assert.equal(count, props.dependances.length);
+            sinon.restore();
+        });
+
+        test("with responsible attribute specified, responsible setter should be called", assert=>{
+            let count = 0;
+            sinon.stub(Project.prototype, "responsible").callsFake(function fakeFn() {
+              count++;
+            });
+
+            let props = {title: 'title', responsible: 'franck'};
+            let t = new Task(props);
+
+            assert.equal(count, 1);
+            sinon.restore();
         });
     });
 
-    QUnit.module('get priority', () => {
-        test("get task priority", assert=>{
-            var props = {
-                id: "etytdtgytf",
-                title: "My task title",
-                description: "Task description",
-                status: "to do",
-                priority: "high",
-                startDate: "2023-12-30",
-                dueDate: "2023-12-31"
-            };
+    // QUnit.module('parent setter', () => {
+    //     test("throws an exception when no parameter is specified", (assert) => {
+    //         let task = new Task({title: "title"});
+  
+    //         assert.throws(() => {
+    //           task.parentId = undefined;
+    //         }, new Error(MISSING_PARAMETERS));
+    //    });
 
-            var task = new Task(props);
-            assert.equal(task.priority, props.priority, "get task priority");
-        });
-    });
+    //    test("throws an exception when parentId is not a string", (assert) => {
+    //         let task = new Task({title: "title"});
 
-    // Tests related to setters
+    //         assert.throws(() => {
+    //             task.parentId = 1;
+    //         }, new Error(INVALID_TYPE_PARAMETER));
+    //    });
 
-    QUnit.module('set title', () => {
-        test("throws an exception when new title is not valid string", assert=>{
-           var props = {
-                id: "etytdtgytf",
-                title: "My task title",
-                description: "Task description",
-                status: "to do",
-                priority: "high",
-                startDate: "2023-12-30",
-                dueDate: "2023-12-31"
-            };
+    //    test("with valid parentId type, getTask should be called from Register", assert=>{
+    //         let count = 0;
+    //         sinon.stub(Register, "getTask").callsFake(function fakeFn() {
+    //             count++;
+    //         });
+    //         let task = new Task({title: "title"});
+    //         task.parentId = 'ygytgvyvgyt';
 
-            task = new Task(props);
-            assert.throws(()=>{
-                task.title = 4;
-            }, new Error("title attribute should be string"));
-        });
+    //         assert.equal(count, 1);
+    //         sinon.restore();
+    //    });
+       
+    //    test("with an existing task as parent, child' startDate should be updated if needed", assert=>{
+    //         sinon.stub(Register, "getTask").callsFake(function fakeFn() {
+    //             return {startDate:new Date('2023-10-20')};
+    //         });
+    //         let task = new Task({title: "title", startDate: new Date('2023-10-10')});
+            
+    //         task.parentId = 'ygytgvyvgyt';
 
-        test("set title", assert=>{
-            var props = {
-                id: "etytdtgytf",
-                title: "My task title",
-                description: "Task description",
-                status: "to do",
-                priority: "high",
-                startDate: "2023-12-30",
-                dueDate: "2023-12-31"
-            };
+    //         assert.deepEqual(task.startDate, new Date('2023-10-20'));
+    //    });
 
-            var task = new Task(props);
-            task.title = "task title";
-            assert.equal(task.title, "task title", "set title");
-        });
-    })
+    //    test("with an unexisting task as parent, an exception should be thrown", assert=>{
+    //         sinon.stub(Register, "getTask").callsFake(function fakeFn() {
+    //             return null;
+    //         });
+    //         let task = new Task({title: "title", startDate: new Date('2023-10-10')});
 
-    QUnit.module('set description', () => {
-        test("throws an exception when new description is not valid string", assert=>{
-           var props = {
-                id: "etytdtgytf",
-                title: "My task title",
-                description: "Task description",
-                status: "to do",
-                priority: "high",
-                startDate: "2023-12-30",
-                dueDate: "2023-12-31"
-            };
+    //         assert.throws(()=>{
+    //             task.parentId = 'ygytgvyvgyt';
+    //         }, INEXISTANT_TASK_RESOURCE);
+    //    });
+    // });
 
-            task = new Task(props);
-            assert.throws(()=>{
-                task.description = 4;
-            }, new Error("Task description should be string"));
-        });
+    // QUnit.module('title setter', () => {
+    //     test("throws an error when title attribute is not provided", assert=>{
+    //         let task = new Task({title: "title"});
 
-        test("set description", assert=>{
-            var props = {
-                id: "etytdtgytf",
-                title: "My task title",
-                description: "Task description",
-                status: "to do",
-                priority: "high",
-                startDate: "2023-12-30",
-                dueDate: "2023-12-31"
-            };
+    //         assert.throws(()=>{
+    //             task.title = undefined;
+    //         }, new Error(MISSING_PARAMETERS));
+    //     });
 
-            var task = new Task(props);
-            task.description = "task description";
-            assert.equal(task.description, "task description", "set description");
-        });
-    })
+    //     test("throws an error when title attribute is not a string", assert=>{
+    //         let task = new Task({title: "title"});
 
-    QUnit.module('set status', () => {
-        test("throws an exception when new status is not valid string", assert=>{
-           var props = {
-                id: "etytdtgytf",
-                title: "My task title",
-                description: "Task description",
-                status: "to do",
-                priority: "high",
-                startDate: "2023-12-30",
-                dueDate: "2023-12-31"
-            };
+    //         assert.throws(()=>{
+    //             task.title = 123;
+    //         }, new Error(INVALID_TYPE_PARAMETER));
+    //     });
 
-            task = new Task(props);
-            assert.throws(()=>{
-                task.status = 4;
-            }, new Error("Task status should be string"));
-        });
+    //     test("with valid title, title should be saved properly", assert=>{
+    //         let task = new Task({title: "title"});
 
-        test("set status", assert=>{
-            var props = {
-                id: "etytdtgytf",
-                title: "My task title",
-                description: "Task description",
-                status: "to do",
-                priority: "high",
-                startDate: "2023-12-30",
-                dueDate: "2023-12-31"
-            };
+    //         task.title = 'iwe title';
 
-            var task = new Task(props);
-            task.title = "task status";
-            assert.equal(task.title, "task status", "set status");
-        });
-    })
+    //         assert.equal(task.title, 'iwe title');
+    //     });
+    // })
 
-    QUnit.module('set priority', () => {
-        test("throws an exception when new priority is not string", assert=>{
-            var props = {
-                 id: "etytdtgytf",
-                 title: "My task title",
-                 description: "Task description",
-                 status: "to do",
-                 priority: "high",
-                 startDate: "2023-12-30",
-                 dueDate: "2023-12-31"
-             };
- 
-             task = new Task(props);
-             assert.throws(()=>{
-                 task.priority = 4;
-             }, new Error("Task priority should be string"));
-         });
-
-         test("throws an error when new priority is provided but not valid", assert=>{
-            var props = {
-                id: "etytdtgytf",
-                title: "My task title",
-                description: "Task description",
-                status: "to do",
-                priority: "high",
-                startDate: "2023-12-30",
-                dueDate: "2023-12-31"
-            };
-
-            var task = new Task(props);
-            assert.throws(()=>{
-                task.priority = "priority";
-            }, new Error("priority should be high, normal or low"));
-        });
-
-        test("set status", assert=>{
-            var props = {
-                id: "etytdtgytf",
-                title: "My task title",
-                description: "Task description",
-                status: "to do",
-                priority: "high",
-                startDate: "2023-12-30",
-                dueDate: "2023-12-31"
-            };
-
-            var task = new Task(props);
-
-            task.priority = "low";
+    // QUnit.module('description setter', () => {
+    //     test("throws an error when description parameter isn't specified", (assert) => {
+    //         let t = new Task({ title: "iwe title" });
+    //         assert.throws(() => {
+    //           t.description = undefined;
+    //         }, new Error(MISSING_PARAMETERS));
+    //     });
+      
+    //     test("throws an error when description parameter is not a string", (assert) => {
+    //         let t = new Task({ title: "iwe title" });
+    //         assert.throws(() => {
+    //             t.description = 2;
+    //         }, new Error(INVALID_TYPE_PARAMETER));
+    //     });
     
-            assert.equal(task.priority, "low", "set priority");
-        });
-    })
+    //     test("valid description should be saved properly", (assert) => {
+    //         let t = new Task({ title: "iwe title"});
+    //         t.description  = "iwe description";
+    //         assert.equal(t.description, 'iwe description');
+    //     });
+    // });
 
-    QUnit.module('set startDate', () => {
-        test("throws an error when new startDate is not in valid format", assert => {
-            var props = {
-                id: "etytdtgytf",
-                title: "My task title",
-                description: "Task description",
-                status: "to do",
-                priority: "high",
-                startDate: "2023-12-30",
-                dueDate: "2023-12-31"
-            };
-            var task = new Task(props);
-
-            assert.throws(()=>{
-                task.startDate = "2023-12-32";
-            }, new Error("startDate should be in valid format"));
-        });
-
-        test("throws an error when new startDate has passed", assert => {
-            var props = {
-                id: "etytdtgytf",
-                title: "My task title",
-                description: "Task description",
-                status: "to do",
-                priority: "high",
-                startDate: "2023-12-30",
-                dueDate: "2023-12-31"
-            };
+    // QUnit.module('status setter', () => {
+    //     test("throws an error when status parameter is not a string", (assert) => {
+    //         let t = new Task({ title: "iwe title" });
+      
+    //         assert.throws(() => {
+    //           t.status = 2;
+    //         }, new Error(INVALID_TYPE_PARAMETER));
+    //     });
+      
+      
+    //     test("valid status should be saved properly", (assert) => {
+    //         let t = new Task({ title: "iwe title" });
+    //         assert.equal(p.status, undefined);
+    //         sinon.stub(Task.prototype, "status").get(function setterFn() {
+    //             return "active";
+    //         });
         
-            var task = new Task(props);
-            assert.throws(() => {
-                task.startDate = "2023-11-20";
-            }, new Error("This startDate has passed"));
-        });
-    
-        test("set startDate", assert=>{
-            var props = {
-                id: "etytdtgytf",
-                title: "My task title",
-                description: "Task description",
-                status: "to do",
-                priority: "high",
-                startDate: "2023-12-30",
-                dueDate: "2023-12-31"
-            };
+    //         t.status = "active";
+            
+    //         assert.equal(t.status, 'active');
+    //         sinon.restore();
+    //     });
+    // })
+
+    // QUnit.module('priority setter', () => {
+    //     test("throws an exception when priority is not a number", assert=>{
+    //         let t = new Task({ title: "iwe title" });
+      
+    //         assert.throws(() => {
+    //           t.priority = '2';
+    //         }, new Error(INVALID_TYPE_PARAMETER));
+    //     });
+
+    //     test("with valid status, priority should be saved properly", assert=>{
+    //         let t = new Task({ title: "iwe title" });
+    //         assert.equal(p.status, undefined);
+    //         sinon.stub(Task.prototype, "priority").get(function setterFn() {
+    //             return 2;
+    //         });
         
-            var task = new Task(props);
-            task.startDate = "2023-12-29";
+    //         t.status = 2;
+            
+    //         assert.equal(t.status, 2);
+    //         sinon.restore();
+    //     });
+    // });
+
+    // QUnit.module('startDate setter', () => {
+    //     test("throws an error when startDate is invalid", (assert) => {
+    //         let t = new Task({ title: "title" });
+    //         var stub = sinon.stub(regex, 'test').callsFake(function fn(){
+    //           return false;
+    //         });
+    //         assert.throws(()=>{
+    //           t.startDate = "22-12*2022";
+    //         }, INVALID_DATE_FORMAT);
+    //         sinon.restore();
+    //     });
+      
+    //     test("with valid startDate, startDate should be saved properly", (assert) => {
+    //         let t = new Task({ title: "title" });
+    //         var stub = sinon.stub(regex, 'test').callsFake(function fn(){
+    //             return true;
+    //         });
+    //         sinon.stub(Task.prototype, "startDate").get(function setterFn() {
+    //             return new Date("2022-12-20");
+    //         });
     
-            assert.deepEqual(task.startDate, initializeHourMinSec(new Date("2023-12-29")), "set startDate");
-        });
-    })
+    //         t.startDate = "2022-12-20";
+    //         assert.deepEqual(t.startDate, new Date("2022-12-20"));
+    //         sinon.restore();
+    //     });
+    // });
 
-
-    QUnit.module('set dueDate', () => {
-        test("throws an error when new dueDate is not in valid format", assert => {
-            var props = {
-                id: "etytdtgytf",
-                title: "My task title",
-                description: "Task description",
-                status: "to do",
-                priority: "high",
-                startDate: "2023-12-30",
-                dueDate: "2023-12-31"
-            };
-
-            var task = new Task(props);
-
-            assert.throws(()=>{
-                task.dueDate = "2023-12-32";
-            }, new Error("dueDate should be in valid format"));
-        });
-
-        test("throws an error when new dueDate is before startDate", assert => {
-            var props = {
-                id: "etytdtgytf",
-                title: "My task title",
-                description: "Task description",
-                status: "to do",
-                priority: "high",
-                startDate: "2023-12-30",
-                dueDate: "2023-12-31"
-            };
-        
-            var task = new Task(props);
-            assert.throws(() => {
-                task.dueDate = "2023-12-29";
-            }, new Error("This dueDate should be after startDate"));
-        });
-    
-        test("set dueDate", assert=>{
-            var props = {
-                id: "etytdtgytf",
-                title: "My task title",
-                description: "Task description",
-                status: "to do",
-                priority: "high",
-                startDate: "2023-12-30",
-                dueDate: "2023-12-31"
-            };
-        
-            var task = new Task(props);
-            task.dueDate = "2024-01-01";
-    
-            assert.deepEqual(task.dueDate, initializeHourMinSec(new Date("2024-01-01")), "set dueDate");
-        });
-    })
+    // QUnit.module('set dueDate', () => {
+    //     test("throws an error when dueDate is invalid", (assert)=> {
+    //         let t = new Task({ title: "title" });
+    //         var stub = sinon.stub(regex, 'test').callsFake(function fn(){
+    //           return false;
+    //         });
+    //         assert.throws(()=>{
+    //           t.endDate = "22-12*2022";
+    //         }, INVALID_DATE_FORMAT);
+    //         sinon.restore();
+    //     });
+      
+    //     test("with valid dueDate, dueDate should be saved properly", (assert) => {
+    //         let t = new Task({ title: "title" });
+    //         var stub = sinon.stub(regex, 'test').callsFake(function fn(){
+    //           return true;
+    //         });
+    //         sinon.stub(Project.prototype, "dueDate").get(function setterFn() {
+    //           return new Date("2022-12-20");
+    //         });
+      
+    //         t.dueDate = "2022-12-20"
+    //         assert.deepEqual(p.dueDate, new Date("2022-12-20"));
+    //         sinon.restore();
+    //     });
+    // });
 })

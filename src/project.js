@@ -1,4 +1,4 @@
-const regex = /(0[1-9]|[12][0-9]|3[01])(\/|-)(0[1-9]|1[1,2])(\/|-)(19|20)\d{2}/;
+const regex = /(19|20)\d{2}(\/|-)(0[1-9]|1[1,2])(\/|-)(0[1-9]|[12][0-9]|3[01])/;
 
 class Project {
   id = undefined;
@@ -74,13 +74,13 @@ class Project {
   set startDate(value){
     if (!regex.test(value))
       throw new Error(INVALID_DATE_FORMAT);
-    this._startDate = value;
+    this._startDate = new Date(value);
   }
 
   set endDate(value){
     if (!regex.test(value))
       throw new Error(INVALID_DATE_FORMAT);
-    this._endDate = value;
+    this._endDate = new Date(value);
   }
 
   set status(value){

@@ -1,12 +1,12 @@
 let Register = {
   store: {},
-  getTask: (taskId, projectId) =>{
+  getTask: (taskId, projectId)=>{
     return {};
   },
-  isMemberExist: (username) =>{
+  isMemberExist: (username)=>{
   },
 
-  saveMember: (member) =>{
+  isTaskExist: (taskId)=>{
 
   }
 };

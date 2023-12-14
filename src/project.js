@@ -6,27 +6,29 @@ class Project {
   _responsible = undefined;
   _description = undefined;
   _startDate = "";
-  _dueDate = "";
+  _endDate = "";
   _status = undefined; 
   members = [];
 
   constructor(props = undefined) {
     if (!props) 
       throw new Error(MISSING_PARAMETERS);
+    if (props.id && typeof props.id != 'string')
+        throw new Error(INVALID_TYPE_PARAMETER);
     if (!props.id || props.id == "")
       this.id = _uuid.generate();
     else
-      this.id = props.id.toString();
-    if (!props.name) 
+      this.id = props.id;
+    if (!props.name)
       throw new Error(MISSING_PARAMETERS);
-    if (props.name == "")
-      throw new Error(MISSING_PARAMETERS);
-    this.name = props.name.toString();
-    if (props.members && !Array.isArray(props.members))
+    if (typeof props.name != 'string')
+      throw new Error(INVALID_TYPE_PARAMETER);
+    this.name = props.name;
+    if ((props.members || props.members == "") && !Array.isArray(props.members))
       throw new  Error(INVALID_TYPE_PARAMETER);
     if (props.members)
       props.members.map((username)=>{
-        this.addMember(username);
+        this.assign(username);
       });
     if (props.responsible)
       this.responsible = props.responsible;
@@ -36,14 +38,30 @@ class Project {
       this.status = props.status;
     if (props.startDate)
         this.startDate = props.startDate;
-    if (props.dueDate) 
-      this.dueDate = props.dueDate;
+    if (props.endDate) 
+      this.endDate = props.endDate;
   }
 
+
+  /**
+   * getters
+   */
+  get name (){
+    return this._name;
+  }
+
+  get description (){
+    return this._description;
+  }
+
+  get responsible (){
+    return this._responsible;
+  }
+  
   /**
    * setters
    */  
-  addMember(username){
+  assign(username){
     var memberExist;
     if (this.members.includes(username))
       return;
@@ -66,7 +84,9 @@ class Project {
   }
 
   set status(value){
-    this._status = value.toString();
+    if (typeof value != 'string')
+      throw new Error(INVALID_TYPE_PARAMETER);
+    this._status = value;
   }
 
   set responsible(value){
@@ -86,14 +106,18 @@ class Project {
   set description(value){
     if (!value)
       throw new Error(MISSING_PARAMETERS);
-    this._description = value.toString();
+    if (value && typeof value !='string')
+      throw new Error(INVALID_TYPE_PARAMETER);
+    this._description = value;
   }
 
   set name(value){
-    if (!value)
+    if (!value && value != "")
       throw new Error(MISSING_PARAMETERS);
-    if (value && value == "")
+    if (value == "")
       throw new Error(NON_EMPTY_STRING_VALUE);
-    this._value = value.toString();
+    if (typeof value != 'string')
+      throw new Error(INVALID_TYPE_PARAMETER);
+    this._value = value;
   }
 }

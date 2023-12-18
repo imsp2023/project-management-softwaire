@@ -1,8 +1,12 @@
 let Register = {
   store: {},
-  getTask: function (taskId, projectId) {
+  addTask: (taskId, task, projectId) => {},
+  getTask: (taskId) => {
     return {};
   },
+  isMemberExist: (username) => {},
+
+  isTaskExist: (taskId) => {},
 };
 
 // module.exports = { Register };

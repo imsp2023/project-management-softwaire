@@ -5,8 +5,6 @@ let Register = {
     return {};
   },
   isMemberExist: (username) => {},
-
-  isTaskExist: (taskId) => {},
 };
 
 // module.exports = { Register };

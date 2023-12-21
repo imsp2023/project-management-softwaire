@@ -4,6 +4,7 @@ let Register = {
     return {};
   },
   isMemberExist: (username)=>{
+    return;
   },
 
   isTaskExist: (taskId)=>{

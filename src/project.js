@@ -1,4 +1,3 @@
-const regex = /(19|20)\d{2}(\/|-)(0[1-9]|1[1,2])(\/|-)(0[1-9]|[12][0-9]|3[01])/;
 
 class Project {
   id = undefined;
@@ -66,8 +65,8 @@ class Project {
     if (this.members.includes(username))
       return;
     memberExist = Register.isMemberExist(username);
-    if (!memberExist)
-      Register.saveMember({username: username});
+    if (memberExist == false)
+      throw new Error(INEXISTANT_MEMBER);
     this.members.push(username);    
   }
 
@@ -90,12 +89,12 @@ class Project {
   }
 
   set responsible(value){
-    var memberExite;
+    var memberExiste;
     if (!value)
       throw new Error(MISSING_PARAMETERS);
     if (!this.members.includes(value)){
-      memberExite = Register.isMemberExist(value);
-      if (memberExite)
+      memberExiste = Register.isMemberExist(value);
+      if (memberExiste)
         this.members.push(value);
       else
         throw new Error(INEXISTING_MEMBER);

@@ -308,10 +308,15 @@ QUnit.module("Project", () => {
 
     test("isMemberExist should be called from Register", (assert) => {
       let p = new Project({ name: "iwe" });
-      let spy = sinon.spy(Register, 'isMemberExist');
+      p.members = [];
+      let count = 0;
+      var stub = sinon.stub(Register, 'isMemberExist').callsFake(function fn(){
+        count++;
+        return true;
+      });
       p.assign('duamelo');
-      assert.true(spy.calledOnce);
-      spy.restore();
+      assert.equal(count, 1);
+      sinon.restore();
     });
 
     test("with an existing member, addMember should save properly", (assert) => {
@@ -323,6 +328,18 @@ QUnit.module("Project", () => {
       p.assign('duamelo');
       assert.equal(p.members[0], 'duamelo');
       sinon.restore();
+    });
+
+    test("with an unexisting member, addMember should throw an exception", (assert) => {
+        let p = new Project({ name: "iwe" });
+        p.members = [];
+        var stub = sinon.stub(Register, 'isMemberExist').callsFake(function fn(){
+          return false;
+        });
+        assert.throws(()=>{
+          p.assign('duamelo');
+        }, INEXISTANT_MEMBER);
+        sinon.restore();
     });
   });
 

@@ -1,83 +1,148 @@
-const taskPriority = ["high", "normal", "low"];
-
 class Task {
-    #id = "";
-    #title = "";
-    #description = "";
-    #status = "";
-    #priority = "";
-    #startDate = new Date();
-    #dueDate = new Date();
+    id = false;
+    _title = undefined;
+    _description = undefined;
+    _status = undefined;
+    _priority = undefined;
+    _startDate = undefined;
+    _dueDate = undefined;
+    dependances = [];
+    _responsible = undefined;
+    _parentId = undefined;
 
-    #dependances = [];
-    #taskResponsible = "";
+    #validatePriority(value){
+        if(value && !taskPriority.includes(value))
+            throw new Error("priority should be high, normal or low");   
+    }
 
-    #throwStringException(attribut, errorMessage1, errorMessage2){
-        if(!attribut)
-            throw new Error(errorMessage1);
+    #validateStartDate(value){
+        if(value && !validateDateFormat(value)) 
+            throw new Error("startDate should be in valid format");
+        else if(this.#parent != undefined && this.#parent.startDate && this.#parent.startDate > initializeHourMinSec(new Date(value)))
+            throw new Error("startDate should be before parent's startDate");
+    }
+
+    #validateDueDate(value){
+        var date = initializeHourMinSec(new Date(value));
+    
+        if(value && !validateDateFormat(value)) 
+            throw new Error("dueDate should be in valid format");
         
-        if(typeof attribut !== "string")
-            throw new Error(errorMessage2);
-    }
-
-    initializeHourMinSec(date) {
-        date.setHours(0, 0, 0, 0); 
-        return date;
-    }
-
-    validateDateFormat(dateString) {
-        const regexDate = /^(?:\d{4}-(?:0[1-9]|1[0-2])-(?:0[1-9]|[12]\d|3[01]))$/;
-        if(regexDate.test(dateString))
-            return true;
-
-        return false;
+        if(value && this.#startDate && date < this.#startDate) 
+            throw new Error("This dueDate should be after startDate");
+        
+        if(this.#parent != undefined && this.#parent.dueDate && this.#parent.dueDate < initializeHourMinSec(new Date(value)))
+            throw new Error("dueDate should be before parent's dueDate");
     }
 
     constructor(props){
         if(!props)
             throw new Error("parameters are required");
-
-        this.#throwStringException(props.id, "id should be provided", "id should be string");
-
-        this.#throwStringException(props.title, "title attribute should be provided", "title attribute should be string");
-
-        this.#throwStringException(props.description, "description attribute should be provided", "Task description should be string");
-
-        this.#throwStringException(props.status, "status attribute should be provided", "Task status should be string");
-
-        if(props.priority){
-            console.log("Hello")
-            if(taskPriority.includes(props.priority))
-                this.#priority = props.priority;
-            else
-                throw new Error("priority should be high, normal or low"); 
-        }else{
-            this.#priority = taskPriority[1];
-        }
-
-
-        var date = this.initializeHourMinSec(new Date(props.startDate));
-        if(props.startDate && !this.validateDateFormat(props.startDate)) 
-            throw new Error("startDate should be in valid format");
         
-        if(props.startDate && date < new Date()) 
-            throw new Error("This startDate has passed");
+        if(!props.title)
+            throw new Error("title attribute should be provided");
 
-        if (props.startDate && this.validateDateFormat(props.startDate) && !isNaN(date.getTime()) && date >= this.initializeHourMinSec(new Date())){ 
-            this.#startDate = this.initializeHourMinSec(new Date(props.startDate))
-            console.log(this.#startDate);
+        this.#validatePriority(props.priority);
+        this.#validateStartDate(props.startDate);
+ 
+        // Initialize attributes
+        this.#id = generateId();
+        this.#title = toString(props.title);
+        this.#description = toString(props.description);
+        this.#status = props.status;
+        
+        if(props.priority && taskPriority.includes(props.priority)){
+            this.#priority = props.priority;
+        }else{
+            this.#priority = DEFAULT_TASK_PRIORITY;
         }
+
+        var date = initializeHourMinSec(new Date(props.startDate));
+        if (props.startDate && validateDateFormat(props.startDate))
+            this.#startDate = initializeHourMinSec(new Date(props.startDate));
         else
-            this.#startDate = this.initializeHourMinSec(new Date);
+            this.#startDate = initializeHourMinSec(new Date());
+    
+        this.#validateDueDate(props.dueDate);
+        this.#dueDate = initializeHourMinSec(new Date(props.dueDate));
+
+        // parentDependencie
+        if(props.parent)
+            this.setParent(props.parent);
     }
 
+    setParent(value){
+        if(!value || !(value instanceof Task))
+            throw new Error("task for child dependence should be class of Task");
+        else if(value == this)
+            throw new Error("this child shouldn't be parent of itself");
+        else if(value.startDate && this.#startDate && this.#startDate < value.startDate)
+            throw new Error("parent startDate should be before a child startDate");
+        else if(value.dueDate && this.#dueDate && this.#dueDate > value.dueDate)
+            throw new Error("parent dueDate should be after a child dueDate");
+        else
+            this.#parent = value;
+    }
 
-    // let's get these attributes just for test
+    // getters
+    get id(){
+        return this.#id;
+    }
+
+    get title(){
+        return this.#title;
+    }
+
+    get description(){
+        return this.#description;
+    }
+
+    get status(){
+        return this.#status;
+    }
     get priority(){
         return this.#priority;
     }
 
     get startDate(){
         return this.#startDate;
+    }
+
+    get dueDate(){
+        return this.#dueDate;
+    }
+
+    // setters
+    set title(value) {
+        if(!value)
+            throw new Error("title attribute should be provided");
+
+        this.#title = value.toString();
+    }
+
+    set description(value) {
+        this.#description = value.toString();
+    }
+
+    set status(value) {
+        this.#status = value.toString();
+    }
+
+    set priority(value) {
+        if(!value || typeof value != "string")
+            throw new Error("Task priority should be string");
+
+        this.#validatePriority(value);
+        this.#priority = value;
+    }
+
+    set startDate(value) {
+        this.#validateStartDate(value);
+        this.#startDate = initializeHourMinSec(new Date(value));;
+    }
+
+    set dueDate(value) {
+        this.#validateDueDate(value);
+        this.#dueDate = initializeHourMinSec(new Date(value));
     }
 }

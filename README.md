@@ -1,1 +1,1 @@
-# project-management-softwaire
+# project-management-software

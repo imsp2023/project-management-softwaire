@@ -1,46 +1,49 @@
 class Task {
   #id = "";
-  #title = "";
-  #description = "";
-  #status = "";
-  #priority = "";
-  #startDate = new Date();
-  #dueDate = new Date();
+  _title = "";
+  _description = "";
+  _status = "";
+  _priority = "";
+  _startDate = new Date();
+  _dueDate = new Date();
 
-  #dependances = [];
-  #taskResponsible = "";
+  _dependances = [];
+  _taskResponsible = "";
 
   constructor(props) {
     if (!props) throw new Error("parameters are required");
     this.#id = props.id;
-    if (!props.startDate) this.#startDate = new Date();
-    else this.#startDate = props.startDate;
-    if (!props.startDate) this.#startDate = new Date();
-    else this.#dueDate = props.dueDate;
+    if (!props.startDate) this.startDate = new Date();
+    else this.startDate = props.startDate;
+    if (!props.dueDate) this.dueDate = new Date();
+    else this.dueDate = props.dueDate;
   }
 
-  dependsOn(taskId, dependanceType, params = "0") {
+  dependsOn(taskId, dependanceType, nbreDeJours = 0) {
     if (taskId == undefined) throw new Error("missing parameters");
 
     if (typeof taskId != "string" || taskId == "")
       throw new Error("taskId attribute should be a non-empty string");
 
+    if (typeof nbreDeJours != "number")
+      throw new Error("nbreDeJours attribute should be a number");
+
     let taskExist = Register.getTask(taskId);
     if (!taskExist) throw new Error("the task doesn't exist");
 
     if (dependanceType == undefined || dependanceType == "") {
-      if (this.getStartDate() < taskExist.getStartDate()) {
-        this.#startDate = taskExist.getStartDate();
+      if (this.startDate < taskExist.getStartDate()) {
+        this.startDate = taskExist.getStartDate();
       }
-      this.#startDate = new Date(
-        this.addDateWithParams(params, this.#startDate)
+      this.startDate = new Date(
+        this.addDateWithParams(nbreDeJours, this.startDate)
       );
       let informationOfDependance = {
         idTask: taskId,
         typeOfDependance: "DD",
-        parameters: params.toString(),
+        parameters: nbreDeJours,
       };
-      this.setDependances(informationOfDependance);
+      this.dependances = informationOfDependance;
     } else {
       if (
         dependanceType != "DD" &&
@@ -49,76 +52,76 @@ class Task {
       )
         throw new Error("parameter dependanceType should be DD or FF or FD");
       if (dependanceType == "DD") {
-        if (this.getStartDate() < taskExist.getStartDate()) {
-          this.#startDate = new Date(
-            this.addDateWithParams(params, taskExist.getStartDate())
+        if (this.startDate < taskExist.getStartDate()) {
+          this.startDate = new Date(
+            this.addDateWithParams(nbreDeJours, taskExist.getStartDate())
           );
         } else
-          this.#startDate = new Date(
-            this.addDateWithParams(params, this.#startDate)
+          this.startDate = new Date(
+            this.addDateWithParams(nbreDeJours, this.startDate)
           );
       } else if (dependanceType == "FF") {
-        if (this.getDueDate() < taskExist.getDueDate())
-          this.#dueDate = new Date(
-            this.addDateWithParams(params, taskExist.getDueDate())
+        if (this.dueDate < taskExist.getDueDate())
+          this.dueDate = new Date(
+            this.addDateWithParams(nbreDeJours, taskExist.getDueDate())
           );
         else
-          this.#dueDate = new Date(
-            this.addDateWithParams(params, this.#dueDate)
+          this.dueDate = new Date(
+            this.addDateWithParams(nbreDeJours, this.dueDate)
           );
       } else if (dependanceType == "FD") {
-        if (this.getStartDate() < taskExist.getDueDate())
-          this.#startDate = new Date(
-            this.addDateWithParams(params, taskExist.getDueDate())
+        if (this.startDate < taskExist.getDueDate())
+          this.startDate = new Date(
+            this.addDateWithParams(nbreDeJours, taskExist.getDueDate())
           );
         else
-          this.#startDate = new Date(
-            this.addDateWithParams(params, this.#startDate)
+          this.startDate = new Date(
+            this.addDateWithParams(nbreDeJours, this.startDate)
           );
       }
       let informationOfDependance = {
         idTask: taskId,
         typeOfDependance: dependanceType,
-        parameters: params.toString(),
+        parameters: nbreDeJours,
       };
-      this.setDependances(informationOfDependance);
+      this.dependances = informationOfDependance;
     }
     let compteur1 = 0;
-    for (let i = 0; i < this.getDependances().length; i++) {
+    for (let i = 0; i < this.dependances.length; i++) {
       if (
-        this.getDependances()[i].idTask == taskId &&
-        this.getDependances()[i].typeOfDependance == "DD"
+        this.dependances[i].idTask == taskId &&
+        this.dependances[i].typeOfDependance == "DD"
       ) {
         compteur1++;
       }
       if (compteur1 > 1) {
-        this.getDependances().splice(i, 1);
+        this.dependances.splice(i, 1);
         break;
       }
     }
     let compteur2 = 0;
-    for (let i = 0; i < this.getDependances().length; i++) {
+    for (let i = 0; i < this.dependances.length; i++) {
       if (
-        this.getDependances()[i].idTask == taskId &&
-        this.getDependances()[i].typeOfDependance == "FF"
+        this.dependances[i].idTask == taskId &&
+        this.dependances[i].typeOfDependance == "FF"
       ) {
         compteur2++;
       }
       if (compteur2 > 1) {
-        this.getDependances().splice(i, 1);
+        this.dependances.splice(i, 1);
         break;
       }
     }
     let compteur3 = 0;
-    for (let i = 0; i < this.getDependances().length; i++) {
+    for (let i = 0; i < this.dependances.length; i++) {
       if (
-        this.getDependances()[i].idTask == taskId &&
-        this.getDependances()[i].typeOfDependance == "FD"
+        this.dependances[i].idTask == taskId &&
+        this.dependances[i].typeOfDependance == "FD"
       ) {
         compteur3++;
       }
       if (compteur3 > 1) {
-        this.getDependances().splice(i, 1);
+        this.dependances.splice(i, 1);
         break;
       }
     }
@@ -130,38 +133,48 @@ class Task {
       throw new Error("username attribute should be a non-empty string");
     if (!Register.isMemberExist())
       throw new Error("this username doesn't exist");
-    this.#taskResponsible = username;
+    this._taskResponsible = username;
   }
 
   addDateWithParams(params, date) {
-    return Math.abs(parseInt(params)) * 24 * 60 * 60 * 1000 + date.getTime();
+    return Math.abs(params) * 24 * 60 * 60 * 1000 + date.getTime();
   }
 
+  //getters
   getId() {
     return this.#id;
   }
 
-  getStartDate() {
-    return this.#startDate;
+  get taskResponsible() {
+    return this._taskResponsible;
   }
 
-  setStartDate(startDate) {
-    this.#startDate = startDate;
+  get startDate() {
+    return this._startDate;
   }
 
-  getDueDate() {
-    return this.#dueDate;
+  get dueDate() {
+    return this._dueDate;
   }
 
-  setDependances(value) {
-    this.#dependances.push(value);
+  get dependances() {
+    return this._dependances;
   }
 
-  getDependances() {
-    return this.#dependances;
+  //setters
+  set startDate(startDate) {
+    this._startDate = startDate;
   }
 
-  getTaskResponsible() {
-    return this.#taskResponsible;
+  set dueDate(dueDate) {
+    this._dueDate = dueDate;
   }
+
+  set dependances(value) {
+    this._dependances.push(value);
+  }
+
+  //set taskResponsible(username) {
+  //  this._taskResponsible = username;
+  //}
 }

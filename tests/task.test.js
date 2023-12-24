@@ -23,6 +23,21 @@ QUnit.module("Task", () => {
       }, new Error("taskId attribute should be a non-empty string"));
     });
 
+    test("throws an error when you try to create the dependance between same task", (assert) => {
+      let stub = sinon.stub(Register, "getTask").callsFake(function fn() {
+        return {
+          getStartDate: () => {
+            return new Date("2021-3-11");
+          },
+        };
+      });
+      let task = new Task({ id: "1", title: "dsbfh" });
+      assert.throws(() => {
+        task.dependsOn("1");
+      }, new Error("you don't create a dependance between the same task"));
+      stub.restore();
+    });
+
     test("throws an error when parameter nbreDeJours isn't a number", (assert) => {
       let tk = new Task({ title: "bhebhgr" });
       assert.throws(() => {
@@ -37,7 +52,7 @@ QUnit.module("Task", () => {
         .set(function setterFn() {
           count = 1;
         });
-      let tk = new Task({ startDate: new Date("2020-5-2") });
+      let tk = new Task({ title: "dsbfh", startDate: new Date("2020-5-2") });
       assert.equal(count, 1);
       stub.restore();
     });
@@ -47,23 +62,28 @@ QUnit.module("Task", () => {
       let stub = sinon.stub(Task.prototype, "dueDate").set(function setterFn() {
         count = 1;
       });
-      let tk = new Task({ dueDate: new Date("2020-5-2") });
+      let tk = new Task({ title: "dsbfh", dueDate: new Date("2020-5-2") });
       assert.equal(count, 1);
       stub.restore();
     });
 
-    //test("with taskResponsible attribute specified, assignedTo setter should be called", (assert) => {
-    //  let count = 0;
-    //  let stub = sinon
-    //    .stub(Task.prototype, "assignedTo")
-    //    .set(function setterFn() {
-    //      count = 1;
-    //    });
-    //  let tk = new Task({ dueDate: new Date("2020-5-2") });
-    //  tk.assignedTo("jdvrhfr");
-    //  assert.equal(count, 1);
-    //  stub.restore();
-    //});
+    test("with taskResponsible attribute specified, assignedTo setter should be called", (assert) => {
+      let count = 0;
+      let stub = sinon
+        .stub(Task.prototype, "assignedTo")
+        .callsFake(function fn() {
+          count = 1;
+          return {
+            getStartDate: () => {
+              return new Date("2020-11-1");
+            },
+          };
+        });
+      let tk = new Task({ title: "dsbfh" });
+      tk.assignedTo("jdvrhfr");
+      assert.equal(count, 1);
+      stub.restore();
+    });
 
     test("getTask should be called from Register", (assert) => {
       let count = 0;

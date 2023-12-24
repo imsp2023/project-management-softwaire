@@ -28,6 +28,9 @@ class Task {
     if (typeof nbreDeJours != "number")
       throw new Error("nbreDeJours attribute should be a number");
 
+    if (this.getId() == taskId)
+      throw new Error("you don't create a dependance between the same task");
+
     let taskExist = Register.getTask(taskId);
     if (!taskExist) throw new Error("the task doesn't exist");
 

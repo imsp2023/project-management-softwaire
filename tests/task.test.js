@@ -96,12 +96,24 @@ QUnit.module("Task", () => {
 
         // Dependencies
         test("when we have child dependencie, then setParent must be called one time", assert => {
+            var spy = sinon.spy(Task.prototype, 'setParent');
             let parentTask = new Task({title: "I'm parent task", startDate: "2023-11-17"});
             var task = new Task({ title: "My task title", parent: parentTask});
 
-            var spy = sinon.spy(task, 'setParent');
             assert.ok(spy.calledOnce, "setParent is called one time");
             spy.restore();
+        });
+
+        test("with description attribute specified, description setter should be called", assert => {
+            let count = 0;
+            sinon.stub(Task.prototype, "description").set(function setterFn() {
+              count = 1;
+            });
+
+            var t = new Task({title: 'title'});
+
+            assert.equal(count, 1);
+            sinon.restore();
         });
     });
 

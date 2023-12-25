@@ -51,7 +51,7 @@ class Task {
 
         this.#validatePriority(props.priority);
         this.#validateStartDate(props.startDate);
- 
+
         // Initialize attributes
         this.#id = generateId();
         this.#title = toString(props.title);

@@ -251,7 +251,7 @@ QUnit.module("Project", () => {
         return false;
       });
       assert.throws(()=>{
-        p.startDate = "22-12*2022";
+        p.startDate = "22-13-2022";
       }, INVALID_DATE_FORMAT);
       sinon.restore();
     });
@@ -261,12 +261,9 @@ QUnit.module("Project", () => {
       var stub = sinon.stub(regex, 'test').callsFake(function fn(){
         return true;
       });
-      sinon.stub(Project.prototype, "startDate").get(function setterFn() {
-        return new Date("2022-12-20");
-    });
 
-      p.startDate = "2022-12-20";
-      assert.deepEqual(p.startDate, new Date("2022-12-20"));
+      p.startDate = "22-12-2022";
+      assert.deepEqual(p.startDate, new Date(2022, 11, 22));
       sinon.restore();
     });
   });
@@ -278,7 +275,7 @@ QUnit.module("Project", () => {
         return false;
       });
       assert.throws(()=>{
-        p.endDate = "22-12*2022";
+        p.endDate = "22-13-2022";
       }, INVALID_DATE_FORMAT);
       sinon.restore();
     });
@@ -288,12 +285,9 @@ QUnit.module("Project", () => {
       var stub = sinon.stub(regex, 'test').callsFake(function fn(){
         return true;
       });
-      sinon.stub(Project.prototype, "endDate").get(function setterFn() {
-        return new Date("2022-12-20");
-    });
 
-      p.endDate = "2022-12-20"
-      assert.deepEqual(p.endDate, new Date("2022-12-20"));
+      p.endDate = "22-10-2022"
+      assert.deepEqual(p.endDate, new Date(2022, 9, 22));
       sinon.restore();
     });
   });
@@ -342,8 +336,28 @@ QUnit.module("Project", () => {
         sinon.restore();
     });
   });
+  
+  QUnit.module("unAssign", ()=>{
+      test("with invalid username, an exception should be thrown", assert=>{
+        let p = new Project({ name: "iwe" });
+        p.members = ['duamelo'];
 
-  QUnit.module("set responsible", () => {
+        assert.throws(()=>{
+          p.unAssign('franck');
+        }, new Error(INEXISTANT_MEMBER));
+      });
+
+      test("with valid username, the member is removed from the project", assert=>{
+        let p = new Project({ name: "iwe" });
+        p.members = ['duamelo'];
+
+        p.unAssign('duamelo');
+
+        assert.false(p.members.includes('duamelo'));
+      });
+  });
+
+  QUnit.module("set responsible", ()=>{
     test("throws an error when parameter username isn't specified", (assert) => {
       let p = new Project({ name: "iwe" });
       assert.throws(() => {
@@ -396,5 +410,186 @@ QUnit.module("Project", () => {
       }, INEXISTING_MEMBER);
       sinon.restore();
     });
+  });
+
+  QUnit.module("addTask", ()=>{
+    test("with no parameter, an exception should be thrown", assert=>{
+      let project = new Project({ name: "iwe" });
+      assert.throws(()=>{
+        project.addTask();
+      }, new Error(MISSING_PARAMETERS));
+    });
+
+    test("with invalid parameter, an exception should be thrown", assert=>{
+      let project = new Project({ name: "iwe" });
+      assert.throws(()=>{
+        project.addTask({});
+      }, new Error(INVALID_TYPE_PARAMETER));
+    });
+
+    test("with valid parameter, validateTask should be called", assert=>{
+      let project = new Project({ name: "iwe" });
+      let task = new Task({title: 'task'});
+      let count = 0;
+      sinon.stub(Project.prototype, "validateTask").callsFake(function fakeFn() {
+        count++;
+      });
+
+      project.addTask(task);
+
+      assert.equal(count, 1);
+      sinon.restore();
+    });
+
+    test("with valid task, addTask from register should be called", assert=>{
+      let project = new Project({ name: "iwe" });
+      let task = new Task({title: 'task'});
+      let count = 0;
+      sinon.stub(Register, "addTask").callsFake(function fakeFn() {
+        count++;
+      });
+
+      project.addTask(task);
+
+      assert.equal(count, 1);
+      sinon.restore();
+    });
+  });
+
+  QUnit.module("removeTask", ()=>{
+    test("with no parameter, an exception should be thrown", assert=>{
+      let project = new Project({ name: "iwe" });
+      assert.throws(()=>{
+        project.removeTask();
+      }, new Error(MISSING_PARAMETERS));
+    });
+
+    test("with non-string parameter, an exception should be thrown", assert=>{
+      let project = new Project({ name: "iwe" });
+      assert.throws(()=>{
+        project.removeTask(null);
+      }, new Error(INVALID_TYPE_PARAMETER));
+    });
+
+    test("deleteTask from register should be called", assert=>{
+      let project = new Project({ name: "iwe" });
+      let task = new Task({title: 'task'});
+      let count = 0;
+      sinon.stub(Register, "addTask").callsFake(function fakeFn() {
+      });
+
+      project.addTask(task);
+
+      sinon.stub(Register, "deleteTask").callsFake(function fakeFn() {
+        count++;
+      });
+
+      project.removeTask(task.id);
+      assert.equal(count, 1);
+      sinon.restore();
+    });
+  });
+
+  QUnit.module("updateTaskStartDate", ()=>{
+      test("with task' startDate that comes before project startDate, update task' startDate", assert=>{
+        let project = new Project({ name: "iwe" });
+        project.startDate = '20-10-2022';
+
+        let task = new Task({title: 'task'});
+
+        project.updateTaskStartDate(task, '10-10-2022');
+
+        assert.deepEqual(task.startDate, project.startDate);
+      });
+
+      test("with task' startDate that comes after project startDate, no update", assert=>{
+        let project = new Project({ name: "iwe" });
+        project.startDate = '20-10-2022';
+
+        let task = new Task({title: 'task'});
+        project.updateTaskStartDate(task, '23-10-2022');
+
+        assert.deepEqual(task.startDate, new Date(2022, 9, 23));
+      });
+  });
+
+  QUnit.module("updateTaskDueDate", ()=>{
+    test("with task' endDate that comes after project's dueDate, update task' endDate", assert=>{
+      let project = new Project({ name: "iwe" });
+      project.startDate = '20-10-2022';
+      project.endDate = '20-11-2022';
+
+      let task = new Task({title: 'task'});
+      project.updateTaskDueDate(task, '25-11-2022');
+
+      assert.deepEqual(task.dueDate, project.endDate);
+    });
+
+    test("with task' endDate that comes before project's dueDate, no update", assert=>{
+      let project = new Project({ name: "iwe" });
+      project.startDate = '20-10-2022';
+      project.endDate = '20-12-2022';
+
+      let task = new Task({title: 'task'});
+      project.updateTaskDueDate(task, '20-11-2022');
+
+      assert.deepEqual(task.dueDate, new Date(2022, 10, 20));
+    });
+  });
+
+  QUnit.module("validateTask", ()=>{
+      test("with no parameter, an exception should be thrown", assert=>{
+        let project = new Project({ name: "iwe" });
+
+        assert.throws(()=>{
+          project.validateTask()
+        }, new Error(MISSING_PARAMETERS));
+      });
+
+      test("with invalid task parameter, an exception should be thrown", assert=>{
+        let project = new Project({ name: "iwe" });
+
+        assert.throws(()=>{
+          project.validateTask({})
+        }, new Error(INVALID_TYPE_PARAMETER));
+      });
+
+      test("updateTaskStartDate should be called", assert=>{
+        let project = new Project({ name: "iwe" });
+        project.startDate = '20-10-2022';
+        project.endDate = '20-12-2022';
+        let count = 0;
+        sinon.stub(Project.prototype, "updateTaskStartDate").callsFake(function fakeFn() {
+          count++;
+          return;
+        });
+
+        var task  = new Task({title: 'task'});
+        task.startDate = '21-10-2022';
+        task.dueDate = '15-12-2022';
+        project.validateTask(task);
+
+        assert.equal(count, 1);
+        sinon.restore();
+      });
+
+      test("updateTaskDueDate should be called", assert=>{
+        let project = new Project({ name: "iwe" });
+        project.startDate = '20-10-2022';
+        project.endDate = '20-12-2022';
+        let count = 0;
+        sinon.stub(Project.prototype, "updateTaskDueDate").callsFake(function fakeFn() {
+          count++;
+          return;
+        });
+
+        var task  = new Task({title: 'task'});
+        task.startDate = '21-10-2022';
+        task.dueDate = '15-12-2022';
+        project.validateTask(task);
+
+        assert.equal(count, 1);
+        sinon.restore();
+      });
   });
 });

@@ -56,6 +56,14 @@ class Project {
   get responsible (){
     return this._responsible;
   }
+
+  get startDate(){
+    return this._startDate;
+  }
+
+  get endDate(){
+    return this._endDate;
+  }
   
   /**
    * setters
@@ -70,17 +78,26 @@ class Project {
     this.members.push(username);    
   }
 
+  unAssign(username){
+    if (this.members.includes(username))
+      this.members.splice(this.members.indexOf(username), 1);
+    else
+      throw new Error(INEXISTANT_MEMBER);
+  }
+
   set startDate(value){
     if (!regex.test(value))
       throw new Error(INVALID_DATE_FORMAT);
-    this._startDate = new Date(value);
+    var dates = value.split('-');
+    this._startDate = new Date(Number(dates[YEAR]), Number(dates[MONTH]) - 1, Number(dates[DAY]));
   }
 
   set endDate(value){
     if (!regex.test(value))
       throw new Error(INVALID_DATE_FORMAT);
-    this._endDate = new Date(value);
-  }
+      var dates = value.split('-');
+      this._endDate = new Date(Number(dates[YEAR]), Number(dates[MONTH]) - 1, Number(dates[DAY]));
+    }
 
   set status(value){
     if (typeof value != 'string')
@@ -118,5 +135,56 @@ class Project {
     if (typeof value != 'string')
       throw new Error(INVALID_TYPE_PARAMETER);
     this._value = value;
+  }
+
+
+  updateTaskStartDate(task, value){
+    var date = value.split('-');
+    if ((new Date(date[YEAR], date[MONTH] - 1, date[DAY])).getTime() < this.startDate.getTime())
+      task.startDate = this.startDate.getDate() + '-' + Number(this.startDate.getMonth() + 1) + '-' + this.startDate.getFullYear();
+    else
+      task.startDate = value;
+  }
+
+  updateTaskDueDate(task, value){
+    var date = value.split('-');
+    if ((new Date(date[YEAR], date[MONTH] - 1, date[DAY])).getTime() > this.endDate.getTime())
+      task.dueDate = this.endDate.getDate() + '-' + Number(this.endDate.getMonth() + 1) + '-' + this.endDate.getFullYear();
+    else
+      task.dueDate = value;
+  }
+
+  addTask(task){
+    if (!task)
+      throw new Error(MISSING_PARAMETERS);
+    if (!(task instanceof Task))
+      throw new Error(INVALID_TYPE_PARAMETER);
+    this.validateTask(task);
+    Register.addTask(task.id, task);
+  }
+
+  removeTask(taskId = 0){
+    if (taskId == null)
+      throw new Error(INVALID_TYPE_PARAMETER);
+    if (!taskId)
+      throw new Error(MISSING_PARAMETERS);
+    if (typeof taskId != 'string')
+      throw new Error(INVALID_TYPE_PARAMETER);
+    Register.deleteTask(taskId);
+  }
+
+  validateTask(task = 0){
+    if (task == null)
+      throw new Error(INVALID_TYPE_PARAMETER);
+    if (!task)
+      throw new Error(MISSING_PARAMETERS);
+    if (!(task instanceof Task))
+      throw new Error(INVALID_TYPE_PARAMETER);
+    this.updateTaskStartDate(task, task.startDate.getDate() + '-' + 
+                              Number(task.startDate.getMonth() + 1) + '-' + 
+                              task.startDate.getFullYear());
+    this.updateTaskDueDate(task, task.dueDate.getDate() + '-' + 
+                              Number(task.dueDate.getMonth() + 1) + '-' + 
+                              task.dueDate.getFullYear());
   }
 }

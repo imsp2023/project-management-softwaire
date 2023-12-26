@@ -8,7 +8,7 @@ class Task {
     _dueDate = undefined;
     dependances = [];
     _responsible = undefined;
-    _parentId = undefined;
+    _parent = undefined;
 
     #validatePriority(value){
         if(value && !taskPriority.includes(value))

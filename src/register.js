@@ -1,24 +1,24 @@
-class Register{
-  #store = [];
+const Register = {
+  store: {},
 
-  addTask(task){
+  addTask: function (taskId, task){
     if(!task || !(task instanceof Task))
       throw new Error("task should be instance of Task class");
 
-    if(this.#store.includes(task))
+    const existingTask = Object.values(this.store).find(e => {
+      return e === task;
+    });
+    
+    if (existingTask) 
       throw new Error("this task already exists");
 
-    this.#store.push(task);
-  }
+    this.store[taskId] = task;
+  },
 
-  deleteTask(id){
-    if(!this.#store.find(t => t.id === id))
+  deleteTask: function(id){
+    if(typeof id != "number" || !this.store[id])
       throw new Error("this task is not founded");
 
-    this.#store = this.#store.filter(t => t.id !== id);
-  }
-
-  get store (){
-    return this.#store;
-  }
+    delete this.store[id];
+  },
 }

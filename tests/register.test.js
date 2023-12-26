@@ -3,19 +3,17 @@ const { test } = QUnit;
 QUnit.module("Register", () => {
   QUnit.module("addTask", () => {
     test("throws an error when task is not instance of Task class", assert=>{
-        var r = new Register;
-
         assert.throws(()=>{
-          r.addTask();
+          Register.addTask();
         }, new Error("task should be instance of Task class"));
     });
 
     test("throws an error when new task already exists", (assert) => {
-      let r = new Register(), t = new Task({title: "My task"});
+      let t = new Task({title: "My task"});
 
-      r.addTask(t);
+      Register.addTask(1, t);
       assert.throws(() => {
-        r.addTask(t);
+        Register.addTask(1, t);
       }, new Error("this task already exists"));
     });
   });
@@ -23,24 +21,39 @@ QUnit.module("Register", () => {
 
   QUnit.module("deleteTask", () => {
     test("throws an error when this task id is not founded", assert=>{
-        let r = new Register, t = new Task({title: "My task"});
+        let t = new Task({title: "My task"});
 
         assert.throws(()=>{
-          r.deleteTask("id");
+          Register.deleteTask("id");
         }, new Error("this task is not founded"));
     });
 
-    test("remove task when it's founded", assert=>{
-      let r = new Register, t = new Task({title: "My task"});
-      r.addTask(t);
-      console.log(r.store)
-
-      r.deleteTask(t.id);
-      assert.deepEqual(r.store, [], "remove task");
+    test("with an existing task, suppression is effective", assert=>{
+      let t = new Task({title: "My task"});
+      Register.addTask(2, t);
+      
+      Register.deleteTask(2);
+      assert.equal(Object.keys(Register.store).length, 0, "remove task");
     });
 
+    test("throws an error when this task id is not founded", assert=>{
+      let t = new Task({title: "My task"});
 
-    // gestion des dépendances liées à la tâche supprimée
+      assert.throws(()=>{
+        Register.deleteTask("id");
+      }, new Error("this task is not founded"));
+    });
+
+    test("when task is parent for another, throw an error", assert=>{
+      let t2 = new Task({title: "My task"});
+      let t1 = new Task({title: "My task", parent: t2});
+
+      Register.addTask(1, t1);
+      Register.addTask(2, t2);
+      assert.throws(()=>{
+        Register.deleteTask(2);
+      }, new Error(""));
+    });
     // remove is not delete but put in the trash
   });
 });

@@ -1,174 +1,190 @@
-const dateOfDay = new Date();
-const year = dateOfDay.getFullYear();
-const month = dateOfDay.getMonth() + 1;
-const day = dateOfDay.getDate();
-const completeDate = `${year}-${month}-${day}`;
-const regex = /^\d{4}\-\d{1,2}\-\d{1,2}$/;
 
 class Project {
-  #id = "";
-  #name = "";
-  #responsible = "";
-  #description = "";
-  #startDate = "";
-  #dueDate = "";
-  #status = "";
+  id = undefined;
+  _name = undefined;
+  _responsible = undefined;
+  _description = undefined;
+  _startDate = "";
+  _endDate = "";
+  _status = undefined; 
+  members = [];
 
-  constructor(props) {
-    if (props == undefined) throw new Error("parameters are required");
-    if (props.id == undefined) this.#id = this.getRandomUnique(1, 10000, []);
-    else {
-      if (props && (typeof props.id != "string" || props.id == ""))
-        throw new Error("id attribute should be a non-empty string");
-      this.#id = props.id;
-    }
-    if (props.name == undefined) throw new Error("parameter name is required");
-    if (props && (typeof props.name != "string" || props.name == ""))
-      throw new Error("name attribute should be a non-empty string");
-    this.#name = props.name;
-    if (props && props.responsible == undefined) this.#responsible = "";
-    else {
-      if (props && typeof props.responsible != "string")
-        throw new Error("responsible attribute should be a string");
-      this.#responsible = props.responsible;
-    }
-    if (props && props.description == undefined) this.#description = "";
-    else {
-      if (props && typeof props.description != "string")
-        throw new Error("description attribute should be a string");
-      this.#description = props.description;
-    }
-    if (props && props.status == undefined) this.#status = "";
-    else {
-      if (props && typeof props.status != "string")
-        throw new Error("status attribute should be a string");
-      this.#status = props.status;
-    }
-    if (props && props.startDate == undefined) this.#startDate = completeDate;
-    else {
-      if (props && regex.test(props.startDate) == false)
-        throw new Error("date should be in yyyy-mm-dd format");
-      let partsOfDate = props.startDate.split("-");
-      let partOfDateNumber = partsOfDate.map(Number);
-      if (partOfDateNumber[1] <= 0 || partOfDateNumber[1] > 12)
-        throw new Error("the month should be between 1 and 12");
-      if (partOfDateNumber[2] <= 0 || partOfDateNumber[2] > 31)
-        throw new Error("the day should be between 1 and 31");
-      if (
-        partOfDateNumber[0] % 4 == 0 ||
-        (partOfDateNumber[0] % 100 == 0 && partOfDateNumber[0] % 400 == 0)
-      ) {
-        if (partOfDateNumber[1] == 2)
-          if (partOfDateNumber[2] <= 0 || partOfDateNumber[2] > 29)
-            throw new Error(
-              "year is leap year so the day should be between 1 and 29"
-            );
-      }
-      if (partOfDateNumber[1] == 2)
-        if (partOfDateNumber[2] <= 0 || partOfDateNumber[2] > 28)
-          throw new Error(
-            "it's frebruary so the day should be between 1 and 28"
-          );
-      this.#startDate = props.startDate;
-    }
-
-    if (props && props.dueDate == undefined) this.#dueDate = "";
-    else {
-      if (props && regex.test(props.dueDate) == false)
-        throw new Error("date should be in yyyy-mm-dd format");
-      let partsOfDate = props.dueDate.split("-");
-      let partOfDateNumber = partsOfDate.map(Number);
-      if (partOfDateNumber[1] <= 0 || partOfDateNumber[1] > 12)
-        throw new Error("the month should be between 1 and 12");
-      if (partOfDateNumber[2] <= 0 || partOfDateNumber[2] > 31)
-        throw new Error("the day should be between 1 and 31");
-      if (
-        partOfDateNumber[0] % 4 == 0 ||
-        (partOfDateNumber[0] % 100 == 0 && partOfDateNumber[0] % 400 == 0)
-      ) {
-        if (partOfDateNumber[1] == 2)
-          if (partOfDateNumber[2] <= 0 || partOfDateNumber[2] > 29)
-            throw new Error(
-              "year is leap year so the day should be between 1 and 29"
-            );
-      }
-      if (partOfDateNumber[1] == 2)
-        if (partOfDateNumber[2] <= 0 || partOfDateNumber[2] > 28)
-          throw new Error(
-            "it's frebruary so the day should be between 1 and 28"
-          );
-      this.#dueDate = props.dueDate;
-    }
+  constructor(props = undefined) {
+    if (!props) 
+      throw new Error(MISSING_PARAMETERS);
+    if (props.id && typeof props.id != 'string')
+        throw new Error(INVALID_TYPE_PARAMETER);
+    if (!props.id || props.id == "")
+      this.id = _uuid.generate();
+    else
+      this.id = props.id;
+    if (!props.name)
+      throw new Error(MISSING_PARAMETERS);
+    if (typeof props.name != 'string')
+      throw new Error(INVALID_TYPE_PARAMETER);
+    this.name = props.name;
+    if ((props.members || props.members == "") && !Array.isArray(props.members))
+      throw new  Error(INVALID_TYPE_PARAMETER);
+    if (props.members)
+      props.members.map((username)=>{
+        this.assign(username);
+      });
+    if (props.responsible)
+      this.responsible = props.responsible;
+    if (props.description) 
+      this.description = props.description;
+    if (props.status) 
+      this.status = props.status;
+    if (props.startDate)
+        this.startDate = props.startDate;
+    if (props.endDate) 
+      this.endDate = props.endDate;
   }
 
-  updateDescription(description) {
-    if (description == undefined)
-      throw new Error("parameter description is required");
-    if (typeof description != "string")
-      throw new Error("description attribute should be a string");
-    this.#description = description;
-  }
-
-  updateName(name) {
-    if (name == undefined) throw new Error("parameter name is required");
-    if (typeof name != "string" || name == "")
-      throw new Error("name attribute should be a non-empty string");
-    this.#name = name;
-  }
-
-  assignedTo(username) {
-    if (username == undefined)
-      throw new Error("parameter username is required");
-    if (typeof username != "string" || username == "")
-      throw new Error("username attribute should be a non-empty string");
-    this.#responsible = username;
-  }
 
   /**
    * getters
    */
-  getId() {
-    return this.#id;
+  get name (){
+    return this._name;
   }
 
-  getName() {
-    return this.#name;
+  get description (){
+    return this._description;
   }
 
-  getResponsible() {
-    return this.#responsible;
+  get responsible (){
+    return this._responsible;
   }
 
-  getDescription() {
-    return this.#description;
+  get startDate(){
+    return this._startDate;
   }
 
-  getStartDate() {
-    return this.#startDate;
+  get endDate(){
+    return this._endDate;
   }
-
-  getDueDate() {
-    return this.#dueDate;
-  }
-
-  getStatus() {
-    return this.#status;
-  }
-
+  
   /**
    * setters
-   */
-  setId(id) {
-    this.#id = id;
+   */  
+  assign(username){
+    var memberExist;
+    if (this.members.includes(username))
+      return;
+    memberExist = Register.isMemberExist(username);
+    if (memberExist == false)
+      throw new Error(INEXISTANT_MEMBER);
+    this.members.push(username);    
   }
 
-  getRandomUnique(min, max, exclude) {
-    let randomValue;
-    do {
-      randomValue = Math.floor(Math.random() * (max - min + 1)) + min;
-    } while (exclude.includes(randomValue));
+  unAssign(username){
+    if (this.members.includes(username))
+      this.members.splice(this.members.indexOf(username), 1);
+    else
+      throw new Error(INEXISTANT_MEMBER);
+  }
 
-    exclude.push(randomValue);
-    return randomValue;
+  set startDate(value){
+    if (!regex.test(value))
+      throw new Error(INVALID_DATE_FORMAT);
+    var dates = value.split('-');
+    this._startDate = new Date(Number(dates[YEAR]), Number(dates[MONTH]) - 1, Number(dates[DAY]));
+  }
+
+  set endDate(value){
+    if (!regex.test(value))
+      throw new Error(INVALID_DATE_FORMAT);
+      var dates = value.split('-');
+      this._endDate = new Date(Number(dates[YEAR]), Number(dates[MONTH]) - 1, Number(dates[DAY]));
+    }
+
+  set status(value){
+    if (typeof value != 'string')
+      throw new Error(INVALID_TYPE_PARAMETER);
+    this._status = value;
+  }
+
+  set responsible(value){
+    var memberExiste;
+    if (!value)
+      throw new Error(MISSING_PARAMETERS);
+    if (!this.members.includes(value)){
+      memberExiste = Register.isMemberExist(value);
+      if (memberExiste)
+        this.members.push(value);
+      else
+        throw new Error(INEXISTING_MEMBER);
+    }
+    this._responsible = value;
+  }
+
+  set description(value){
+    if (!value)
+      throw new Error(MISSING_PARAMETERS);
+    if (value && typeof value !='string')
+      throw new Error(INVALID_TYPE_PARAMETER);
+    this._description = value;
+  }
+
+  set name(value){
+    if (!value && value != "")
+      throw new Error(MISSING_PARAMETERS);
+    if (value == "")
+      throw new Error(NON_EMPTY_STRING_VALUE);
+    if (typeof value != 'string')
+      throw new Error(INVALID_TYPE_PARAMETER);
+    this._value = value;
+  }
+
+
+  updateTaskStartDate(task, value){
+    var date = value.split('-');
+    if ((new Date(date[YEAR], date[MONTH] - 1, date[DAY])).getTime() < this.startDate.getTime())
+      task.startDate = this.startDate.getDate() + '-' + Number(this.startDate.getMonth() + 1) + '-' + this.startDate.getFullYear();
+    else
+      task.startDate = value;
+  }
+
+  updateTaskDueDate(task, value){
+    var date = value.split('-');
+    if ((new Date(date[YEAR], date[MONTH] - 1, date[DAY])).getTime() > this.endDate.getTime())
+      task.dueDate = this.endDate.getDate() + '-' + Number(this.endDate.getMonth() + 1) + '-' + this.endDate.getFullYear();
+    else
+      task.dueDate = value;
+  }
+
+  addTask(task){
+    if (!task)
+      throw new Error(MISSING_PARAMETERS);
+    if (!(task instanceof Task))
+      throw new Error(INVALID_TYPE_PARAMETER);
+    this.validateTask(task);
+    Register.addTask(task.id, task);
+  }
+
+  removeTask(taskId = 0){
+    if (taskId == null)
+      throw new Error(INVALID_TYPE_PARAMETER);
+    if (!taskId)
+      throw new Error(MISSING_PARAMETERS);
+    if (typeof taskId != 'string')
+      throw new Error(INVALID_TYPE_PARAMETER);
+    Register.deleteTask(taskId);
+  }
+
+  validateTask(task = 0){
+    if (task == null)
+      throw new Error(INVALID_TYPE_PARAMETER);
+    if (!task)
+      throw new Error(MISSING_PARAMETERS);
+    if (!(task instanceof Task))
+      throw new Error(INVALID_TYPE_PARAMETER);
+    this.updateTaskStartDate(task, task.startDate.getDate() + '-' + 
+                              Number(task.startDate.getMonth() + 1) + '-' + 
+                              task.startDate.getFullYear());
+    this.updateTaskDueDate(task, task.dueDate.getDate() + '-' + 
+                              Number(task.dueDate.getMonth() + 1) + '-' + 
+                              task.dueDate.getFullYear());
   }
 }

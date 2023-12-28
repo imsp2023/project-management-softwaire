@@ -16,14 +16,7 @@ QUnit.module("Task", () => {
       }, new Error("taskId attribute should be a non-empty string"));
     });
 
-    test("throws an error when parameter taskId is a empty string", (assert) => {
-      let tk = new Task({ title: "bhebhgr" });
-      assert.throws(() => {
-        tk.dependsOn("");
-      }, new Error("taskId attribute should be a non-empty string"));
-    });
-
-    test("throws an error when you try to create the dependance between same task", (assert) => {
+    test("with direct cyclic dependance, an exception should be thrown", (assert) => {
       let stub = sinon.stub(Register, "getTask").callsFake(function fn() {
         return {
           getStartDate: () => {

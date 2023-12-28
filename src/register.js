@@ -19,6 +19,23 @@ const Register = {
     if(typeof id != "number" || !this.store[id])
       throw new Error("this task is not founded");
 
+      const isParentTask = Object.values(this.store).some(task => {
+        return task.parent && task.parent === this.store[id];
+      });
+
+      if(isParentTask) 
+        throw new Error("this task has child: delete child task first");
+
+
+      const hasDependence = Object.values(this.store).some(task => {
+        task.dependences.forEach(e => {
+          return e.taskId == id;
+        });
+      });
+
+      if(hasDependence)
+        throw new Error("this task has some dependences: delete its first");
+
     delete this.store[id];
   },
 }

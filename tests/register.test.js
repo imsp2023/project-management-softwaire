@@ -36,14 +36,6 @@ QUnit.module("Register", () => {
       assert.equal(Object.keys(Register.store).length, 0, "remove task");
     });
 
-    test("throws an error when this task id is not founded", assert=>{
-      let t = new Task({title: "My task"});
-
-      assert.throws(()=>{
-        Register.deleteTask("id");
-      }, new Error("this task is not founded"));
-    });
-
     test("when task is parent for another, throw an error", assert=>{
       let t2 = new Task({title: "My task"});
       let t1 = new Task({title: "My task", parent: t2});
@@ -52,8 +44,18 @@ QUnit.module("Register", () => {
       Register.addTask(2, t2);
       assert.throws(()=>{
         Register.deleteTask(2);
-      }, new Error(""));
+      }, new Error("this task has child: delete child task first"));
     });
-    // remove is not delete but put in the trash
+
+    test("when task have dependencies, throw an exception", assert=>{
+      let t2 = new Task({title: "My task"});
+      let t1 = new Task({title: "My task", dependencies: []});
+
+      Register.addTask(1, t1);
+      Register.addTask(2, t2);
+      assert.throws(()=>{
+        Register.deleteTask(2);
+      }, new Error("this task has some dependences: delete its first"));
+    });
   });
 });

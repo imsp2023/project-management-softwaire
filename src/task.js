@@ -115,6 +115,14 @@ class Task {
         return this.#startDate;
     }
 
+    get parent(){
+        return this.#parent;
+    }
+
+    get dependencies(){
+        return this.#dependences;
+    }
+
     get dueDate(){
         return this.#dueDate;
     }

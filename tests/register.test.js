@@ -3,27 +3,26 @@ const { test } = QUnit;
 QUnit.module("Register", () => {
   QUnit.module("addTask", () => {
 
-    test("when parameter, not task to add", assert => {
+    test("with no parameter, no task adding", assert => {
       Register.store = {};
       Register.addTask();
 
       assert.equal(Object.keys(Register.store).length, 0, "no task to add");
     })
 
-    test("throws an exception when task is not instance of Task class", assert=>{
+    test("throws an exception when task is not a Task object", assert=>{
         assert.throws(()=>{
           Register.addTask("hello");
-        }, new Error("task should be instance of Task class"));
+        }, new Error("task should be a task object"));
     });
 
-    test("with an empty store, adding task should be effective", (assert) => {
+    test("with an empty store, addTask should add a task", (assert)=>{
       let t = new Task({title: "My task"});
       Register.store = {};
       Register.addTask(t);
 
-      assert.equal(Object.keys(Register.store).length, 1, "task has added");
+      assert.equal(Object.keys(Register.store).length, 1, "task added");
     });
-
   });
 
 

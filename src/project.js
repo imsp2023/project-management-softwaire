@@ -141,7 +141,9 @@ class Project {
   updateTaskStartDate(task, value){
     var date = value.split('-');
     if ((new Date(date[YEAR], date[MONTH] - 1, date[DAY])).getTime() < this.startDate.getTime())
-      task.startDate = this.startDate.getDate() + '-' + Number(this.startDate.getMonth() + 1) + '-' + this.startDate.getFullYear();
+      task.startDate = this.startDate.getDate() + '-' + 
+                        Number(this.startDate.getMonth() + 1) + '-' + 
+                        this.startDate.getFullYear();
     else
       task.startDate = value;
   }
@@ -149,7 +151,9 @@ class Project {
   updateTaskDueDate(task, value){
     var date = value.split('-');
     if ((new Date(date[YEAR], date[MONTH] - 1, date[DAY])).getTime() > this.endDate.getTime())
-      task.dueDate = this.endDate.getDate() + '-' + Number(this.endDate.getMonth() + 1) + '-' + this.endDate.getFullYear();
+      task.dueDate = this.endDate.getDate() + '-' + 
+                      Number(this.endDate.getMonth() + 1) + '-' + 
+                      this.endDate.getFullYear();
     else
       task.dueDate = value;
   }

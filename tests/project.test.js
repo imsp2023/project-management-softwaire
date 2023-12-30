@@ -443,7 +443,13 @@ QUnit.module("Project", () => {
 
     test("with valid task, addTask from register should be called", assert=>{
       let project = new Project({ name: "iwe" });
+      project.startDate = '20-10-2022';
+      project.endDate = '20-12-2022';
+
       let task = new Task({title: 'task'});
+      task.startDate = '21-10-2022';
+      task.dueDate = '15-12-2022';
+
       let count = 0;
       sinon.stub(Register, "addTask").callsFake(function fakeFn() {
         count++;
@@ -473,7 +479,13 @@ QUnit.module("Project", () => {
 
     test("deleteTask from register should be called", assert=>{
       let project = new Project({ name: "iwe" });
-      let task = new Task({title: 'task'});
+      project.startDate = '20-10-2022';
+      project.endDate = '20-12-2022';
+
+      let task = new Task({id: "yyyyu", title: 'task'});
+      task.startDate = '21-10-2022';
+      task.dueDate = '15-12-2022';
+
       let count = 0;
       sinon.stub(Register, "addTask").callsFake(function fakeFn() {
       });

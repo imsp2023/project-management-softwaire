@@ -1,148 +1,146 @@
 class Task {
-    id = false;
+    id = undefined;
     _title = undefined;
     _description = undefined;
     _status = undefined;
     _priority = undefined;
     _startDate = undefined;
     _dueDate = undefined;
-    dependances = [];
+    dependences = [];
     _responsible = undefined;
     _parent = undefined;
 
-    #validatePriority(value){
-        if(value && !taskPriority.includes(value))
-            throw new Error("priority should be high, normal or low");   
-    }
-
-    #validateStartDate(value){
-        if(value && !validateDateFormat(value)) 
-            throw new Error("startDate should be in valid format");
-        else if(this.#parent != undefined && this.#parent.startDate && this.#parent.startDate > initializeHourMinSec(new Date(value)))
-            throw new Error("startDate should be before parent's startDate");
-    }
-
-    #validateDueDate(value){
-        var date = initializeHourMinSec(new Date(value));
-    
-        if(value && !validateDateFormat(value)) 
-            throw new Error("dueDate should be in valid format");
-        
-        if(value && this.#startDate && date < this.#startDate) 
-            throw new Error("This dueDate should be after startDate");
-        
-        if(this.#parent != undefined && this.#parent.dueDate && this.#parent.dueDate < initializeHourMinSec(new Date(value)))
-            throw new Error("dueDate should be before parent's dueDate");
-    }
-
     constructor(props){
-        if(!props)
-            throw new Error("parameters are required");
-        
-        if(!props.title)
-            throw new Error("title attribute should be provided");
-
-        this.#validatePriority(props.priority);
-        this.#validateStartDate(props.startDate);
- 
-        // Initialize attributes
-        this.#id = generateId();
-        this.#title = toString(props.title);
-        this.#description = toString(props.description);
-        this.#status = props.status;
-        
-        if(props.priority && taskPriority.includes(props.priority)){
-            this.#priority = props.priority;
-        }else{
-            this.#priority = DEFAULT_TASK_PRIORITY;
-        }
-
-        var date = initializeHourMinSec(new Date(props.startDate));
-        if (props.startDate && validateDateFormat(props.startDate))
-            this.#startDate = initializeHourMinSec(new Date(props.startDate));
+        if (!props)
+            throw new Error(MISSING_PARAMETERS);
+        if (props.id && typeof props.id != 'string')
+            throw new Error(INVALID_TYPE_PARAMETER);
+        if (!props.id || props.id == "")
+            this.id = _uuid.generate();
         else
-            this.#startDate = initializeHourMinSec(new Date());
-    
-        this.#validateDueDate(props.dueDate);
-        this.#dueDate = initializeHourMinSec(new Date(props.dueDate));
-
-        // parentDependencie
-        if(props.parent)
-            this.setParent(props.parent);
+            this.id = props.id;
+        if (!props.title)
+            throw new Error(MISSING_PARAMETERS);
+        this.title = props.title;
+        if (props.description)
+            this.description = props.description;
+        if (props.priority)
+            this.priority = props.priority;
+        if (props.status)
+            this.status = props.status;
+        if (props.startDate)
+            this.startDate = props.startDate;
+        if (props.dueDate)
+            this.dueDate = props.dueDate;
+        if (props.parentId)
+            this.parent = props.parentId;
+        if (props.dependences && !Array.isArray(props.dependences))
+            throw new Error(INVALID_TYPE_PARAMETER);
+        props.dependences && props.dependences.map(({id, type, offsetDay})=>{
+            this.dependsOn(id, type);
+            this.addOffsetDayOnDependence(id, offsetDay);
+        });
+        if (props.responsible)
+            this.responsible = props.responsible;
     }
 
-    setParent(value){
-        if(!value || !(value instanceof Task))
-            throw new Error("task for child dependence should be class of Task");
-        else if(value == this)
-            throw new Error("this child shouldn't be parent of itself");
-        else if(value.startDate && this.#startDate && this.#startDate < value.startDate)
-            throw new Error("parent startDate should be before a child startDate");
-        else if(value.dueDate && this.#dueDate && this.#dueDate > value.dueDate)
-            throw new Error("parent dueDate should be after a child dueDate");
-        else
-            this.#parent = value;
+    dependsOn(taskId, dependence = "DD"){
+
+    }
+
+    addOffsetDayOnDependence(taskId, offsetDay){
+
+    }
+
+    set parent(parentId){
+        let parentTask;
+        if (!parentId)
+            throw new Error(MISSING_PARAMETERS);
+        parentTask = Register.getTask(parentId);
+        if (!parentTask)
+            throw new Error(INEXISTANT_TASK);
+        if (parentTask.startDate > this.startDate)
+            this.startDate = parentTask.startDate;
+        if (parentTask.dueDate < this.dueDate)
+            this.dueDate = parentTask.dueDate;
     }
 
     // getters
     get id(){
-        return this.#id;
+        return this.id;
     }
 
     get title(){
-        return this.#title;
+        return this._title;
     }
 
     get description(){
-        return this.#description;
+        return this._description;
     }
 
     get status(){
-        return this.#status;
+        return this._status;
     }
     get priority(){
-        return this.#priority;
+        return this._priority;
     }
 
     get startDate(){
-        return this.#startDate;
+        return this._startDate;
     }
 
     get dueDate(){
-        return this.#dueDate;
+        return this._dueDate;
     }
 
     // setters
     set title(value) {
-        if(!value)
-            throw new Error("title attribute should be provided");
-
-        this.#title = value.toString();
+        if (!value)
+            throw new Error(MISSING_PARAMETERS);
+        if (typeof value != 'string')
+            throw new Error(INVALID_TYPE_PARAMETER);
+        this._title = value;
     }
 
     set description(value) {
-        this.#description = value.toString();
+        if (!value)
+            throw new Error(MISSING_PARAMETERS);
+        if (typeof value != 'string')
+            throw new Error(INVALID_TYPE_PARAMETER);
+        this._description = value;
     }
 
     set status(value) {
-        this.#status = value.toString();
+        if (typeof value != 'string')
+            throw new Error(INVALID_TYPE_PARAMETER);
+        this._status = value;
     }
 
     set priority(value) {
-        if(!value || typeof value != "string")
-            throw new Error("Task priority should be string");
-
-        this.#validatePriority(value);
-        this.#priority = value;
+        if (typeof value != 'number')
+            throw new Error(INVALID_TYPE_PARAMETER);
+        this._priority = value;
     }
 
     set startDate(value) {
-        this.#validateStartDate(value);
-        this.#startDate = initializeHourMinSec(new Date(value));;
+        if (!regex.test(value))
+            throw new Error(INVALID_DATE_FORMAT);
+        var dates = value.split('-');
+        this._startDate = new Date(Number(dates[YEAR]), Number(dates[MONTH]) - 1, Number(dates[DAY]));
     }
 
     set dueDate(value) {
-        this.#validateDueDate(value);
-        this.#dueDate = initializeHourMinSec(new Date(value));
+        if (!regex.test(value))
+        throw new Error(INVALID_DATE_FORMAT);
+        var dates = value.split('-');
+        this._dueDate = new Date(Number(dates[YEAR]), Number(dates[MONTH]) - 1, Number(dates[DAY]));
+        }
+
+    set responsible(username){
+        let memberExist;
+        memberExist = Register.isMemberExist(username);
+        if (!memberExist)
+            throw new Error(INEXISTANT_MEMBER);
+        this._responsible = username;
     }
 }

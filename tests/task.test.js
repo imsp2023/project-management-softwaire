@@ -11,7 +11,7 @@ QUnit.module("Task", () => {
         test("with undefined id, _uuid.generate should be called", assert =>{
             let spy = sinon.spy(_uuid, 'generate');
 
-            let task = new Task({});
+            let task = new Task({title: ".."});
       
             assert.true(spy.calledOnce);
             spy.restore();
@@ -20,7 +20,7 @@ QUnit.module("Task", () => {
         test("with an empty string as id, _uuid.generate should be called", (assert) => {
             let spy = sinon.spy(_uuid, 'generate');
       
-            let task = new Task({id: ""});
+            let task = new Task({id: "", title: "...."});
       
             assert.true(spy.calledOnce);
             spy.restore();
@@ -28,24 +28,29 @@ QUnit.module("Task", () => {
 
         test("throws an error when title attribute is not provided", assert=>{
             assert.throws(()=>{
-                new Task({});
+                new Task({id:""});
             }, new Error(MISSING_PARAMETERS));
         });
 
-        test("throws an error when title attribute is not a string", assert=>{
-
-            assert.throws(()=>{
-                new Task({title: 123});
-            }, new Error(INVALID_TYPE_PARAMETER));
-        });
-
-        test("with description attribute specified, description setter should be called", assert => {
+        test("with title attribute specified, title setter should be called", assert=>{
             let count = 0;
-            sinon.stub(Project.prototype, "description").set(function setterFn() {
+            sinon.stub(Task.prototype, "title").set(function setterFn() {
               count = 1;
             });
 
             var t = new Task({title: 'title'});
+
+            assert.equal(count, 1);
+            sinon.restore();
+        });
+
+        test("with description attribute specified, description setter should be called", assert => {
+            let count = 0;
+            sinon.stub(Task.prototype, "description").set(function setterFn() {
+              count = 1;
+            });
+
+            var t = new Task({title: 'title', description: 'description'});
 
             assert.equal(count, 1);
             sinon.restore();
@@ -53,11 +58,11 @@ QUnit.module("Task", () => {
 
         test("with priority attribute specified, priority setter should be called", assert => {
             let count = 0;
-            sinon.stub(Project.prototype, "priority").set(function setterFn() {
+            sinon.stub(Task.prototype, "priority").set(function setterFn() {
               count = 1;
             });
 
-            var t = new Task({title: 'title'});
+            var t = new Task({title: 'title', priority: 1});
 
             assert.equal(count, 1);
             sinon.restore();
@@ -65,11 +70,11 @@ QUnit.module("Task", () => {
 
         test("with status attribute specified, status setter should  be called", assert =>{
             let count = 0;
-            sinon.stub(Project.prototype, "status").set(function setterFn() {
+            sinon.stub(Task.prototype, "status").set(function setterFn() {
               count = 1;
             });
 
-            var t = new Task({title: 'title'});
+            var t = new Task({title: 'title', status: 'active'});
 
             assert.equal(count, 1);
             sinon.restore();
@@ -77,23 +82,23 @@ QUnit.module("Task", () => {
 
         test("with startDate attribute specified, startDate setter should be called", assert =>{
             let count = 0;
-            sinon.stub(Project.prototype, "startDate").set(function setterFn() {
+            sinon.stub(Task.prototype, "startDate").set(function setterFn() {
               count = 1;
             });
 
-            var t = new Task({title: 'title'});
+            var t = new Task({title: 'title',startDate: '22-10-2022'});
 
             assert.equal(count, 1);
             sinon.restore();
         });
 
-        test(" with endDate attribute specified, endDate setter should be called", assert =>{
+        test(" with dueDate attribute specified, endDate setter should be called", assert =>{
             let count = 0;
-            sinon.stub(Project.prototype, "endDate").set(function setterFn() {
+            sinon.stub(Task.prototype, "dueDate").set(function setterFn() {
               count = 1;
             });
 
-            var t = new Task({title: 'title'});
+            var t = new Task({title: 'title', dueDate: '22-10-2023'});
 
             assert.equal(count, 1);
             sinon.restore();
@@ -101,39 +106,64 @@ QUnit.module("Task", () => {
 
         test("with parentId attribute specified, parentId setter should be called", assert =>{
             let count = 0;
-            sinon.stub(Project.prototype, "parent").set(function setterFn() {
+            sinon.stub(Task.prototype, "parent").set(function setterFn() {
               count = 1;
             });
 
-            var t = new Task({title: 'title'});
+            var t = new Task({title: 'title', parentId: '125'});
 
             assert.equal(count, 1);
             sinon.restore();
         });
 
-        test("throws an exception when dependancies attribute is not an array", assert=>{
-
+        // test fails with null, "", undefined as dependences value
+        test("throws an exception when dependencies attribute is not an array", assert=>{
             assert.throws(()=>{
-                new Task({title: 'title', dependances: ""});
+                new Task({title: 'title', dependences: "eeee"});
             }, INVALID_TYPE_PARAMETER);
         });
 
-        test("with dependancies attribute specified, dependances setter should be called", assert=>{
+        test("with dependencies attribute specified, dependsOn should be called", assert=>{
             let count = 0;
-            sinon.stub(Project.prototype, "dependances").callsFake(function fakeFn() {
+            sinon.stub(Task.prototype, "dependsOn").callsFake(function fakeFn() {
               count++;
-            });
-      
-            let props = {title: 'title', dependances: ['eetyzeztfd', 'ffgffgggf', 'gghghhghggh']};
+            });      
+            let props = {
+                title: 'title', 
+                dependences: [
+                    {id: 'dedede', type: 'DD'}, 
+                    {id: 'dedede', type: 'DD'}, 
+                    {id: 'dedede', type: 'DD'}
+                ]
+            };
             let t = new Task(props);
 
-            assert.equal(count, props.dependances.length);
+            assert.equal(count, props.dependences.length);
+            sinon.restore();
+        });
+
+        test("with dependencies attribute specified and offsetDay too, addOffsetDayOnDependence should be called", assert=>{
+            let count = 0;
+            sinon.stub(Task.prototype, "addOffsetDayOnDependence").callsFake(function fakeFn() {
+              count++;
+            });      
+            let props = {
+                title: 'title', 
+                dependences: [
+                    {id: 'dedede', type: 'DD'}, 
+                    {id: 'dedede', type: 'DD'}, 
+                    {id: 'dedede', type: 'DD'}
+                ]
+            };
+            let t = new Task(props);
+
+            assert.equal(count, props.dependences.length);
             sinon.restore();
         });
 
         test("with responsible attribute specified, responsible setter should be called", assert=>{
             let count = 0;
-            sinon.stub(Project.prototype, "responsible").callsFake(function fakeFn() {
+            sinon.stub(Task.prototype, "responsible").set(function fakeFn() {
               count++;
             });
 
@@ -145,204 +175,301 @@ QUnit.module("Task", () => {
         });
     });
 
-    // QUnit.module('parent setter', () => {
-    //     test("throws an exception when no parameter is specified", (assert) => {
-    //         let task = new Task({title: "title"});
+    QUnit.module('parent setter', () => {
+        test("throws an exception when no parameter is specified", (assert) => {
+            let task = new Task({title: "title"});
   
-    //         assert.throws(() => {
-    //           task.parentId = undefined;
-    //         }, new Error(MISSING_PARAMETERS));
-    //    });
+            assert.throws(() => {
+              task.parent = undefined;
+            }, new Error(MISSING_PARAMETERS));
+       });
 
-    //    test("throws an exception when parentId is not a string", (assert) => {
-    //         let task = new Task({title: "title"});
+       test("with parentId specified, getTask should be called from Register", assert=>{
+            let count = 0;
+            sinon.stub(Register, "getTask").callsFake(function fakeFn() {
+                count++;
+                return {};
+            });
+            let task = new Task({title: "title"});
+            task.parent = 'ygytgvyvgyt';
 
-    //         assert.throws(() => {
-    //             task.parentId = 1;
-    //         }, new Error(INVALID_TYPE_PARAMETER));
-    //    });
+            assert.equal(count, 1);
+            sinon.restore();
+       });
 
-    //    test("with valid parentId type, getTask should be called from Register", assert=>{
-    //         let count = 0;
-    //         sinon.stub(Register, "getTask").callsFake(function fakeFn() {
-    //             count++;
-    //         });
-    //         let task = new Task({title: "title"});
-    //         task.parentId = 'ygytgvyvgyt';
+       test("with an unexisting task as parent, an exception should be thrown", assert=>{
+            sinon.stub(Register, "getTask").callsFake(function fakeFn() {
+                return null;
+            });
+            let task = new Task({title: "title", startDate: '22-10-2023'});
 
-    //         assert.equal(count, 1);
-    //         sinon.restore();
-    //    });
-       
-    //    test("with an existing task as parent, child' startDate should be updated if needed", assert=>{
-    //         sinon.stub(Register, "getTask").callsFake(function fakeFn() {
-    //             return {startDate:new Date('2023-10-20')};
-    //         });
-    //         let task = new Task({title: "title", startDate: new Date('2023-10-10')});
+            assert.throws(()=>{
+                task.parent = 'ygytgvyvgyt';
+            }, INEXISTANT_TASK);
+            sinon.restore();
+       });
+
+       test("with an existing task as parent and wrong child' startDate, startDate setter should be called", assert=>{
+            let count = 0;    
+            sinon.stub(Register, "getTask").callsFake(function fakeFn() {
+                return {
+                    startDate: new Date(2023, 9, 20)
+                };
+            });
+            sinon.stub(Task.prototype, "startDate").set(function fakeFn() {
+               count++;
+            });
+            let task = new Task({title: "title"});
+            task._startDate = new Date(2023, 8, 10);
             
-    //         task.parentId = 'ygytgvyvgyt';
+            task.parent = 'ygytgvyvgyt';
 
-    //         assert.deepEqual(task.startDate, new Date('2023-10-20'));
-    //    });
+            assert.equal(count, 1);
+            sinon.restore();
+       });
 
-    //    test("with an unexisting task as parent, an exception should be thrown", assert=>{
-    //         sinon.stub(Register, "getTask").callsFake(function fakeFn() {
-    //             return null;
-    //         });
-    //         let task = new Task({title: "title", startDate: new Date('2023-10-10')});
+       test("with an existing task as parent and right child' startDate, startDate setter should not be called", assert=>{
+            let count = 0;    
+            sinon.stub(Register, "getTask").callsFake(function fakeFn() {
+                return {
+                    startDate: new Date(2023, 9, 20)
+                };
+            });
+            sinon.stub(Task.prototype, "startDate").set(function fakeFn() {
+            count++;
+            });
+            let task = new Task({title: "title"});
+            task._startDate = new Date(2023, 10, 10);
+            
+            task.parent = 'ygytgvyvgyt';
 
-    //         assert.throws(()=>{
-    //             task.parentId = 'ygytgvyvgyt';
-    //         }, INEXISTANT_TASK_RESOURCE);
-    //    });
-    // });
+            assert.equal(count, 0);
+            sinon.restore();
+        });
 
-    // QUnit.module('title setter', () => {
-    //     test("throws an error when title attribute is not provided", assert=>{
-    //         let task = new Task({title: "title"});
+        test("with an existing task as parent and wrong child' dueDate, dueDate setter should be called", assert=>{
+            let count = 0;    
+            sinon.stub(Register, "getTask").callsFake(function fakeFn() {
+                return {
+                    startDate: new Date(2023, 9, 20),
+                    dueDate: new Date(2023, 11, 20)
+                };
+            });
+            sinon.stub(Task.prototype, "dueDate").set(function fakeFn() {
+               count++;
+            });
+            let task = new Task({title: "title"});
+            task._startDate = new Date(2023, 10, 10);
+            task._dueDate = new Date(2024, 10, 10);
+            
+            task.parent = 'ygytgvyvgyt';
 
-    //         assert.throws(()=>{
-    //             task.title = undefined;
-    //         }, new Error(MISSING_PARAMETERS));
-    //     });
+            assert.equal(count, 1);
+            sinon.restore();
+       });
 
-    //     test("throws an error when title attribute is not a string", assert=>{
-    //         let task = new Task({title: "title"});
+       test("with an existing task as parent and right child' dueDate, dueDate setter should not be called", assert=>{
+            let count = 0;    
+            sinon.stub(Register, "getTask").callsFake(function fakeFn() {
+                return {
+                    startDate: new Date(2023, 9, 20),
+                    dueDate: new Date(2023, 11, 20)
+                };
+            });
+            sinon.stub(Task.prototype, "dueDate").set(function fakeFn() {
+            count++;
+            });
+            let task = new Task({title: "title"});
+            task._startDate = new Date(2023, 10, 10);
+            task._dueDate = new Date(2023, 10, 20);
+            
+            task.parent = 'ygytgvyvgyt';
 
-    //         assert.throws(()=>{
-    //             task.title = 123;
-    //         }, new Error(INVALID_TYPE_PARAMETER));
-    //     });
+            assert.equal(count, 0);
+            sinon.restore();
+        });
+        // check that task.dueDate > parentTask.startDate and task.startDate < parentTask.dueDate
+    });
 
-    //     test("with valid title, title should be saved properly", assert=>{
-    //         let task = new Task({title: "title"});
+    QUnit.module('title setter', () => {
+        test("throws an error when title attribute is not provided", assert=>{
+            let task = new Task({title: "title"});
 
-    //         task.title = 'iwe title';
+            assert.throws(()=>{
+                task.title = undefined;
+            }, new Error(MISSING_PARAMETERS));
+        });
 
-    //         assert.equal(task.title, 'iwe title');
-    //     });
-    // })
+        test("throws an error when title attribute is not a string", assert=>{
+            let task = new Task({title: "title"});
 
-    // QUnit.module('description setter', () => {
-    //     test("throws an error when description parameter isn't specified", (assert) => {
-    //         let t = new Task({ title: "iwe title" });
-    //         assert.throws(() => {
-    //           t.description = undefined;
-    //         }, new Error(MISSING_PARAMETERS));
-    //     });
+            assert.throws(()=>{
+                task.title = 123;
+            }, new Error(INVALID_TYPE_PARAMETER));
+        });
+
+        test("with valid title, title should be saved properly", assert=>{
+            let task = new Task({title: "title"});
+
+            task.title = 'iwe title';
+
+            assert.equal(task.title, 'iwe title');
+        });
+    })
+
+    QUnit.module('description setter', () => {
+        test("throws an error when description parameter isn't specified", (assert) => {
+            let t = new Task({ title: "iwe title" });
+            assert.throws(() => {
+              t.description = undefined;
+            }, new Error(MISSING_PARAMETERS));
+        });
       
-    //     test("throws an error when description parameter is not a string", (assert) => {
-    //         let t = new Task({ title: "iwe title" });
-    //         assert.throws(() => {
-    //             t.description = 2;
-    //         }, new Error(INVALID_TYPE_PARAMETER));
-    //     });
+        test("throws an error when description parameter is not a string", (assert) => {
+            let t = new Task({ title: "iwe title" });
+            assert.throws(() => {
+                t.description = 2;
+            }, new Error(INVALID_TYPE_PARAMETER));
+        });
     
-    //     test("valid description should be saved properly", (assert) => {
-    //         let t = new Task({ title: "iwe title"});
-    //         t.description  = "iwe description";
-    //         assert.equal(t.description, 'iwe description');
-    //     });
-    // });
+        test("valid description should be saved properly", (assert) => {
+            let t = new Task({ title: "iwe title"});
+            t.description  = "iwe description";
+            assert.equal(t.description, 'iwe description');
+        });
+    });
 
-    // QUnit.module('status setter', () => {
-    //     test("throws an error when status parameter is not a string", (assert) => {
-    //         let t = new Task({ title: "iwe title" });
+    QUnit.module('status setter', () => {
+        test("throws an error when status parameter is not a string", (assert) => {
+            let t = new Task({ title: "iwe title" });
       
-    //         assert.throws(() => {
-    //           t.status = 2;
-    //         }, new Error(INVALID_TYPE_PARAMETER));
-    //     });
+            assert.throws(() => {
+              t.status = 2;
+            }, new Error(INVALID_TYPE_PARAMETER));
+        });
       
       
-    //     test("valid status should be saved properly", (assert) => {
-    //         let t = new Task({ title: "iwe title" });
-    //         assert.equal(p.status, undefined);
-    //         sinon.stub(Task.prototype, "status").get(function setterFn() {
-    //             return "active";
-    //         });
+        test("valid status should be saved properly", (assert) => {
+            let t = new Task({ title: "iwe title" });
+            assert.equal(t.status, undefined);
+            sinon.stub(Task.prototype, "status").get(function setterFn() {
+                return "active";
+            });
         
-    //         t.status = "active";
+            t.status = "active";
             
-    //         assert.equal(t.status, 'active');
-    //         sinon.restore();
-    //     });
-    // })
+            assert.equal(t.status, 'active');
+            sinon.restore();
+        });
+    });
 
-    // QUnit.module('priority setter', () => {
-    //     test("throws an exception when priority is not a number", assert=>{
-    //         let t = new Task({ title: "iwe title" });
+    QUnit.module('priority setter', () => {
+        test("throws an exception when priority is not a number", assert=>{
+            let t = new Task({ title: "iwe title" });
       
-    //         assert.throws(() => {
-    //           t.priority = '2';
-    //         }, new Error(INVALID_TYPE_PARAMETER));
-    //     });
+            assert.throws(() => {
+              t.priority = '2';
+            }, new Error(INVALID_TYPE_PARAMETER));
+        });
 
-    //     test("with valid status, priority should be saved properly", assert=>{
-    //         let t = new Task({ title: "iwe title" });
-    //         assert.equal(p.status, undefined);
-    //         sinon.stub(Task.prototype, "priority").get(function setterFn() {
-    //             return 2;
-    //         });
+        test("with valid type priority, priority should be saved properly", assert=>{
+            let t = new Task({ title: "iwe title" });
+            assert.equal(t.status, undefined);
+            sinon.stub(Task.prototype, "priority").get(function setterFn() {
+                return 2;
+            });
         
-    //         t.status = 2;
+            t.priority = 2;
             
-    //         assert.equal(t.status, 2);
-    //         sinon.restore();
-    //     });
-    // });
+            assert.equal(t.priority, 2);
+            sinon.restore();
+        });
+    });
 
-    // QUnit.module('startDate setter', () => {
-    //     test("throws an error when startDate is invalid", (assert) => {
-    //         let t = new Task({ title: "title" });
-    //         var stub = sinon.stub(regex, 'test').callsFake(function fn(){
-    //           return false;
-    //         });
-    //         assert.throws(()=>{
-    //           t.startDate = "22-12*2022";
-    //         }, INVALID_DATE_FORMAT);
-    //         sinon.restore();
-    //     });
-      
-    //     test("with valid startDate, startDate should be saved properly", (assert) => {
-    //         let t = new Task({ title: "title" });
-    //         var stub = sinon.stub(regex, 'test').callsFake(function fn(){
-    //             return true;
-    //         });
-    //         sinon.stub(Task.prototype, "startDate").get(function setterFn() {
-    //             return new Date("2022-12-20");
-    //         });
+    QUnit.module("startDate setter", () => {
+        test("throws an error when startDate is invalid", (assert) => {
+          let t = new Task({ title: "title" });
+          var stub = sinon.stub(regex, 'test').callsFake(function fn(){
+            return false;
+          });
+          assert.throws(()=>{
+            t.startDate = "22-13-2022";
+          }, INVALID_DATE_FORMAT);
+          sinon.restore();
+        });
     
-    //         t.startDate = "2022-12-20";
-    //         assert.deepEqual(t.startDate, new Date("2022-12-20"));
-    //         sinon.restore();
-    //     });
-    // });
+        test("with valid startDate, startDate should be saved properly", (assert) => {
+            let t = new Task({ title: "title" });
+            var stub = sinon.stub(regex, 'test').callsFake(function fn(){
+                return true;
+            });
+    
+          t.startDate = "22-12-2022";
+          assert.deepEqual(t.startDate, new Date(2022, 11, 22));
+          sinon.restore();
+        });
+      });
 
-    // QUnit.module('set dueDate', () => {
-    //     test("throws an error when dueDate is invalid", (assert)=> {
-    //         let t = new Task({ title: "title" });
-    //         var stub = sinon.stub(regex, 'test').callsFake(function fn(){
-    //           return false;
-    //         });
-    //         assert.throws(()=>{
-    //           t.endDate = "22-12*2022";
-    //         }, INVALID_DATE_FORMAT);
-    //         sinon.restore();
-    //     });
-      
-    //     test("with valid dueDate, dueDate should be saved properly", (assert) => {
-    //         let t = new Task({ title: "title" });
-    //         var stub = sinon.stub(regex, 'test').callsFake(function fn(){
-    //           return true;
-    //         });
-    //         sinon.stub(Project.prototype, "dueDate").get(function setterFn() {
-    //           return new Date("2022-12-20");
-    //         });
-      
-    //         t.dueDate = "2022-12-20"
-    //         assert.deepEqual(p.dueDate, new Date("2022-12-20"));
-    //         sinon.restore();
-    //     });
-    // });
+      QUnit.module("set dueDate", () => {
+        test("throws an error when dueDate is invalid", (assert)=> {
+            let t = new Task({ title: "title" });
+            var stub = sinon.stub(regex, 'test').callsFake(function fn(){
+                return false;
+            });
+            assert.throws(()=>{
+                t.dueDate = "22-13-2022";
+            }, INVALID_DATE_FORMAT);
+            sinon.restore();
+        });
+    
+        test("with valid dueDate, endDate should be saved properly", (assert) => {
+            let t = new Task({ title: "title" });
+            var stub = sinon.stub(regex, 'test').callsFake(function fn(){
+                return true;
+            });
+        
+            t.dueDate = "22-10-2022"
+            assert.deepEqual(t.dueDate, new Date(2022, 9, 22));
+            sinon.restore();
+        });
+    });
+
+
+  QUnit.module("set responsible", ()=>{
+    test("isMemberExist should be called from Register", (assert) => {
+        let t = new Task({ title: "title" });
+        let count = 0;
+        sinon.stub(Register, "isMemberExist").callsFake(function fakeFn() {
+            count++;
+            return true;
+        });
+
+        t.responsible = 'duamelo';
+
+        assert.equal(count, 1);
+        sinon.restore();
+    });
+
+    test("with an existing member specified, responsible attribute should be updated", (assert) => {
+        let t = new Task({ title: "title" });
+        var stub = sinon.stub(Register, 'isMemberExist').callsFake(function fn(){
+            return true;
+        });
+        t.responsible = 'duamelo';
+        assert.equal(t._responsible, 'duamelo');
+        sinon.restore();
+    });
+
+    test("with a member that's not enregistred, throws an exception", (assert) => {
+        let t = new Task({ title: "title" });
+        var stub = sinon.stub(Register, 'isMemberExist').callsFake(function fn(){
+            return false;
+        });
+        assert.throws(()=>{
+            t.responsible = 'duamelo';
+        }, INEXISTING_MEMBER);
+        sinon.restore();
+    });
+  });
+
 })

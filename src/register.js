@@ -9,11 +9,13 @@ let Register = {
   getTask: (taskId)=>{
     return {};
   },
+  getTaskByDueDate: ()=>{
+
+  },
+  getTasksByMember: ()=>{
+
+  },
   isMemberExist: (username)=>{
     return;
-  },
-
-  isTaskExist: (taskId)=>{
-
   }
 };

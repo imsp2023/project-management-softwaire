@@ -6,7 +6,7 @@ class Task {
     _priority = undefined;
     _startDate = undefined;
     _dueDate = undefined;
-    dependences = [];
+    dependences = {};
     _responsible = undefined;
     _parent = undefined;
 
@@ -44,11 +44,46 @@ class Task {
             this.responsible = props.responsible;
     }
 
-    dependsOn(taskId, dependence = "DD"){
-
+    dependsOn(taskId = 0, dependence = START_START){
+        let taskExist, dependenceIsCyclic;
+        if (!taskId)
+            throw new Error(MISSING_PARAMETERS);
+        taskExist = Register.getTask(taskId);
+        if (!taskExist)
+            throw new Error(INEXISTANT_TASK);
+        dependenceIsCyclic = this.hasCyclicDependence(taskId);
+        if (dependenceIsCyclic)
+            throw new Error(CYCLIC_DEPENDENCE_NOT_ALLOWED);
+        switch(dependence){
+            case START_START:
+                if (this.startDate < taskExist.startDate)
+                    this.startDate = taskExist.startDate.getDate() + '-' + 
+                                    Number(taskExist.startDate.getMonth() + 1) + '-' +
+                                    taskExist.startDate.getFullYear();
+                break;
+            case END_START:
+                if (this.startDate < taskExist.dueDate)
+                this.startDate = taskExist.dueDate.getDate() + '-' + 
+                                Number(taskExist.dueDate.getMonth() + 1) + '-' +
+                                taskExist.dueDate.getFullYear();
+                break;
+            case END_END:
+                if (this.dueDate < taskExist.dueDate)
+                    this.dueDate = taskExist.dueDate.getDate() + '-' + 
+                                    Number(taskExist.dueDate.getMonth() + 1) + '-' +
+                                    taskExist.dueDate.getFullYear();
+                break;
+            default:
+                throw new Error(INVALID_DEPENDENCE);
+        }
+        this.dependences[taskId] = dependence;
     }
 
     addOffsetDayOnDependence(taskId, offsetDay){
+
+    }
+
+    hasCyclicDependence(taskId){
 
     }
 
@@ -131,10 +166,10 @@ class Task {
 
     set dueDate(value) {
         if (!regex.test(value))
-        throw new Error(INVALID_DATE_FORMAT);
+            throw new Error(INVALID_DATE_FORMAT);
         var dates = value.split('-');
         this._dueDate = new Date(Number(dates[YEAR]), Number(dates[MONTH]) - 1, Number(dates[DAY]));
-        }
+    }
 
     set responsible(username){
         let memberExist;

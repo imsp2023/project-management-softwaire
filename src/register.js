@@ -17,5 +17,11 @@ let Register = {
   },
   isMemberExist: (username)=>{
     return;
+  },
+  addMember: (member)=>{
+
+  },
+  addProject: (project)=>{
+    
   }
 };

@@ -39,6 +39,7 @@ class Project {
         this.startDate = props.startDate;
     if (props.endDate) 
       this.endDate = props.endDate;
+    Register.addProject(this);
   }
 
 
@@ -164,7 +165,7 @@ class Project {
     if (!(task instanceof Task))
       throw new Error(INVALID_TYPE_PARAMETER);
     this.validateTask(task);
-    Register.addTask(task.id, task);
+    Register.addTask(task.id + this.id, task);
   }
 
   removeTask(taskId = 0){

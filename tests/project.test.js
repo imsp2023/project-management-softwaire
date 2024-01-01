@@ -161,6 +161,19 @@ QUnit.module("Project", () => {
       assert.equal(pj.id, props.id, 'set id');
       assert.equal(pj.name, props.name, 'set name');
     });
+
+    test("addProject from Register shouldbe called",(assert) =>{
+      let count = 0;
+      sinon.stub(Register, "addProject").callsFake(function fakeFn() {
+        count++;
+      });
+      var props = {id: "azer", name: 'iwe'};
+
+      var pj = new Project(props);
+
+      assert.equal(count, 1);
+      sinon.restore();
+    });
   });
 
   QUnit.module("set description", () => {

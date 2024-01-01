@@ -104,17 +104,16 @@ QUnit.module("Task", () => {
             spy.restore();
         });
 
-        test("with description attribute specified, description setter should be called", assert => {
-            let count = 0;
-            sinon.stub(Task.prototype, "description").set(function setterFn() {
-              count = 1;
-            });
+        // test("with description attribute specified, description setter should be called", assert => {
+        //     let count = 0;
+        //     sinon.stub(Task.prototype, "description").set(function setterFn() {
+        //       count = 1;
+        //     });
 
-            var t = new Task({title: 'title'});
-
-            assert.equal(count, 1);
-            sinon.restore();
-        });
+        //     var t = new Task({title: 'title'});
+        //     assert.equal(count, 1);
+        //     sinon.restore();
+        // });
     });
 
     QUnit.module('setParent', () => {

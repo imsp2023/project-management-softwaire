@@ -13,7 +13,7 @@ class Task {
     #priority = "";
     #startDate = new Date();
     #dueDate = new Date();
-    #dependences = [];
+    dependences = [];
     #taskResponsible = "";
     #parent = undefined;
 
@@ -120,7 +120,7 @@ class Task {
     }
 
     get dependencies(){
-        return this.#dependences;
+        return this.    dependences;
     }
 
     get dueDate(){

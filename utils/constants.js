@@ -1,0 +1,17 @@
+const MISSING_PARAMETERS = "Missing parameters.";
+const INEXISTING_MEMBER = "This member does not exist.";
+const INVALID_DATE_FORMAT = "Date should be in DD-MM-YYYY format.";
+const NON_EMPTY_STRING_VALUE = "Parameter should be a non empty string.";
+const INVALID_TYPE_PARAMETER = "The type parameter is not valid";
+const INEXISTANT_TASK = "The task does not exist";
+const INEXISTANT_MEMBER = "The member does not exist";
+const MEMBER_ALREADY_EXISTANT = "This member already exists";
+const regex = /^(0?[1-9]|[12][0-9]|3[01])[\/-](0?[1-9]|1[012])[\/-]\d{4}$/;
+const YEAR = 2;
+const MONTH = 1;
+const DAY = 0;
+const CYCLIC_DEPENDENCE_NOT_ALLOWED = "Cyclic dependence is not allowed";
+const START_START = "DD";
+const END_START = "FD";
+const END_END = "FF";
+const INVALID_DEPENDENCE = "dependence should be either DD or FF or FD";

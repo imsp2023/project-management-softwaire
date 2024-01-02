@@ -34,4 +34,23 @@ const Register = {
 
     delete this.store[id];
   },
-}
+
+  getTask: (taskId)=>{
+    return {};
+  },
+  getTaskByDueDate: ()=>{
+
+  },
+  getTasksByMember: ()=>{
+
+  },
+  isMemberExist: (username)=>{
+    return;
+  },
+  addMember: (member)=>{
+
+  },
+  addProject: (project)=>{
+    
+  }
+};

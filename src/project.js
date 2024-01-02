@@ -1,51 +1,194 @@
 class Project {
-    #id = "";
-    #name = "";
-    #description = "";
-    #members = [];
-    #responsible = "";
-    #startDate = new Date();
-    #endDate = new Date();
-    #status = "";
-    #tasks = [];
-    
-    addMember(member){
-        if(!(member instanceof Member))
-            throw new Error("member should be instance of Member class");
+  id = undefined;
+  _name = undefined;
+  _responsible = undefined;
+  _description = undefined;
+  _startDate = "";
+  _endDate = "";
+  _status = undefined; 
+  members = [];
 
-        if(!this.#members.every(memberp => memberp.username !== member.username))
-            throw new Error("This member already exists");
+  constructor(props = undefined) {
+    if (!props) 
+      throw new Error(MISSING_PARAMETERS);
+    if (props.id && typeof props.id != 'string')
+        throw new Error(INVALID_TYPE_PARAMETER);
+    if (!props.id || props.id == "")
+      this.id = _uuid.generate();
+    else
+      this.id = props.id;
+    if (!props.name)
+      throw new Error(MISSING_PARAMETERS);
+    if (typeof props.name != 'string')
+      throw new Error(INVALID_TYPE_PARAMETER);
+    this.name = props.name;
+    if ((props.members || props.members == "") && !Array.isArray(props.members))
+      throw new  Error(INVALID_TYPE_PARAMETER);
+    if (props.members)
+      props.members.map((username)=>{
+        this.assign(username);
+      });
+    if (props.responsible)
+      this.responsible = props.responsible;
+    if (props.description) 
+      this.description = props.description;
+    if (props.status) 
+      this.status = props.status;
+    if (props.startDate)
+        this.startDate = props.startDate;
+    if (props.endDate) 
+      this.endDate = props.endDate;
+    Register.addProject(this);
+  }
 
-        this.#members.push(member);
-        return this.#members;
+
+  /**
+   * getters
+   */
+  get name (){
+    return this._name;
+  }
+
+  get description (){
+    return this._description;
+  }
+
+  get responsible (){
+    return this._responsible;
+  }
+
+  get startDate(){
+    return this._startDate;
+  }
+
+  get endDate(){
+    return this._endDate;
+  }
+  
+  /**
+   * setters
+   */  
+  assign(username){
+    var memberExist;
+    if (this.members.includes(username))
+      return;
+    memberExist = Register.isMemberExist(username);
+    if (memberExist == false)
+      throw new Error(INEXISTANT_MEMBER);
+    this.members.push(username);    
+  }
+
+  unAssign(username){
+    if (this.members.includes(username))
+      this.members.splice(this.members.indexOf(username), 1);
+    else
+      throw new Error(INEXISTANT_MEMBER);
+  }
+
+  set startDate(value){
+    if (!regex.test(value))
+      throw new Error(INVALID_DATE_FORMAT);
+    var dates = value.split('-');
+    this._startDate = new Date(Number(dates[YEAR]), Number(dates[MONTH]) - 1, Number(dates[DAY]));
+  }
+
+  set endDate(value){
+    if (!regex.test(value))
+      throw new Error(INVALID_DATE_FORMAT);
+      var dates = value.split('-');
+      this._endDate = new Date(Number(dates[YEAR]), Number(dates[MONTH]) - 1, Number(dates[DAY]));
     }
-    
-    removeMemberById(id){
-        let verifyMember = this.#members.filter(member => member.id === id);
-        if(this.#members.length === 0 || verifyMember.length == 0)
-            throw new Error("member with this id is not founded");
-        else
-            return this.#members = this.#members.filter(member => member.id !== id)
+
+  set status(value){
+    if (typeof value != 'string')
+      throw new Error(INVALID_TYPE_PARAMETER);
+    this._status = value;
+  }
+
+  set responsible(value){
+    var memberExiste;
+    if (!value)
+      throw new Error(MISSING_PARAMETERS);
+    if (!this.members.includes(value)){
+      memberExiste = Register.isMemberExist(value);
+      if (memberExiste)
+        this.members.push(value);
+      else
+        throw new Error(INEXISTING_MEMBER);
     }
+    this._responsible = value;
+  }
 
-    addTask(task){
-        if(!(task instanceof Task))
-            throw new Error("project task should be instance of Task class");
+  set description(value){
+    if (!value)
+      throw new Error(MISSING_PARAMETERS);
+    if (value && typeof value !='string')
+      throw new Error(INVALID_TYPE_PARAMETER);
+    this._description = value;
+  }
 
-        if(!this.#tasks.every(taskp => taskp.username === task.id))
-            throw new Error("This task already exists");
+  set name(value){
+    if (!value && value != "")
+      throw new Error(MISSING_PARAMETERS);
+    if (value == "")
+      throw new Error(NON_EMPTY_STRING_VALUE);
+    if (typeof value != 'string')
+      throw new Error(INVALID_TYPE_PARAMETER);
+    this._value = value;
+  }
 
-        this.#tasks.push(task);
-        return this.#tasks;
-    }
 
-    removeTaskById(id){
-        let verifyTask = this.#tasks.find(element => element.id === id);
+  updateTaskStartDate(task, value){
+    var date = value.split('-');
+    if ((new Date(date[YEAR], date[MONTH] - 1, date[DAY])).getTime() < this.startDate.getTime())
+      task.startDate = this.startDate.getDate() + '-' + 
+                        Number(this.startDate.getMonth() + 1) + '-' + 
+                        this.startDate.getFullYear();
+    else
+      task.startDate = value;
+  }
 
-        if(this.#tasks.length === 0 || !verifyTask || verifyTask.length >= 1)
-            throw new Error("task with this id is not founded");
-        else
-            return this.#tasks = this.#tasks.filter(task => task.id !== id);
+  updateTaskDueDate(task, value){
+    var date = value.split('-');
+    if ((new Date(date[YEAR], date[MONTH] - 1, date[DAY])).getTime() > this.endDate.getTime())
+      task.dueDate = this.endDate.getDate() + '-' + 
+                      Number(this.endDate.getMonth() + 1) + '-' + 
+                      this.endDate.getFullYear();
+    else
+      task.dueDate = value;
+  }
 
-    }
+  addTask(task){
+    if (!task)
+      throw new Error(MISSING_PARAMETERS);
+    if (!(task instanceof Task))
+      throw new Error(INVALID_TYPE_PARAMETER);
+    this.validateTask(task);
+    Register.addTask(task);
+  }
+
+  removeTask(taskId = 0){
+    if (taskId == null)
+      throw new Error(INVALID_TYPE_PARAMETER);
+    if (!taskId)
+      throw new Error(MISSING_PARAMETERS);
+    if (typeof taskId != 'string')
+      throw new Error(INVALID_TYPE_PARAMETER);
+    Register.deleteTask(taskId);
+  }
+
+  validateTask(task = 0){
+    if (task == null)
+      throw new Error(INVALID_TYPE_PARAMETER);
+    if (!task)
+      throw new Error(MISSING_PARAMETERS);
+    if (!(task instanceof Task))
+      throw new Error(INVALID_TYPE_PARAMETER);
+    this.updateTaskStartDate(task, task.startDate.getDate() + '-' + 
+                              Number(task.startDate.getMonth() + 1) + '-' + 
+                              task.startDate.getFullYear());
+    this.updateTaskDueDate(task, task.dueDate.getDate() + '-' + 
+                              Number(task.dueDate.getMonth() + 1) + '-' + 
+                              task.dueDate.getFullYear());
+  }
 }

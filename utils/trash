@@ -1,0 +1,3 @@
+Task
+    -dependencies is array test
+    -don't exception when task title isn't string but conversion to string

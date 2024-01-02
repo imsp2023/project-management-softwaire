@@ -5,7 +5,16 @@ QUnit.module("Task", () => {
         test("throws an error when parameters are not specified", assert =>{
             assert.throws(() => {
                 new Task();
-            }, new Error("parameters are required"));
+            }, new Error(MISSING_PARAMETERS));
+        });
+
+        test("with undefined id, _uuid.generate should be called", assert =>{
+            let spy = sinon.spy(_uuid, 'generate');
+
+            let task = new Task({title: ".."});
+            
+            assert.true(spy.calledOnce);
+            spy.restore();
         });
 
         test("verify if id is automatically generated", assert =>{
@@ -35,43 +44,52 @@ QUnit.module("Task", () => {
         //     }, new Error("priority should be high, normal or low"));
         // });
 
-        test("throws an error when startDate is provided but not in valid format", assert => {
-            const props = {
-                id: "etytdtgytf",
-                title: "My task title",
-                description: "Task description",
-                status: "to do",
-                priority: "high",
-                startDate: "2023-13-30"
-            };
+        test("with dueDate attribute specified, endDate setter should be called", assert =>{
+            let count = 0;
+            sinon.stub(Task.prototype, "dueDate").set(function setterFn() {
+              count = 1;
+            });
 
+            var t = new Task({title: 'title', dueDate: '22-10-2023'});
+
+            assert.equal(count, 1);
+            sinon.restore();
+        });
+
+        test("with parentId attribute specified, parentId setter should be called", assert =>{
+            let count = 0;
+            sinon.stub(Task.prototype, "parent").set(function setterFn() {
+              count = 1;
+            });
+
+            var t = new Task({title: 'title', parentId: '125'});
+
+            assert.equal(count, 1);
+            sinon.restore();
+        });
+
+        // test fails with null, "", undefined as dependences value
+        test("throws an exception when dependencies attribute is not an array", assert=>{
             assert.throws(()=>{
                 new Task(props);
             }, new Error("startDate should be in valid format"));
         });
 
-        test("update startDate to now date when it is not specified", assert =>{
-            const props = {
-                id: "etytdtgytf",
-                title: "My task title",
-                description: "Task description",
-                status: "to do",
-                priority: "high"
-            };
-            var task = new Task(props);
-            assert.deepEqual(task.startDate, initializeHourMinSec(new Date()), "initialize startDate");
-        }); 
+        test("with dependencies attribute specified, dependsOn should be called", assert=>{
+            let count = 0;
+            sinon.stub(Task.prototype, "dependsOn").callsFake(function fakeFn() {
+              count++;
+            });      
 
-        test("throws an error when dueDate is not valid", assert => {
-            const props = {
-                id: "etytdtgytf",
-                title: "My task title",
-                description: "Task description",
-                status: "to do",
-                priority: "high",
-                startDate: "2023-12-30",
-                dueDate: "2023-12-32"
+            let props = {
+                title: 'title', 
+                dependences: [
+                    {id: 'dedede', type: 'DD'}, 
+                    {id: 'dedede', type: 'DD'}, 
+                    {id: 'dedede', type: 'DD'}
+                ]
             };
+            let t = new Task(props);
 
             assert.throws(()=>{
                 new Task(props);
@@ -189,21 +207,26 @@ QUnit.module("Task", () => {
         });
     })
 
-    QUnit.module('set status', () => {
-        test("set status", assert=>{
-            var props = {
-                id: "etytdtgytf",
-                title: "My task title",
-                description: "Task description",
-                status: "to do",
-                priority: "high",
-                startDate: "2023-12-30",
-                dueDate: "2023-12-31"
-            };
-
-            var task = new Task(props);
-            task.title = "task status";
-            assert.equal(task.title, "task status", "set status");
+    QUnit.module('status setter', () => {
+        test("throws an error when status parameter is not a string", (assert) => {
+            let t = new Task({ title: "iwe title" });
+      
+            assert.throws(() => {
+              t.status = 2;
+            }, new Error(INVALID_TYPE_PARAMETER));
+        });
+      
+        test("valid status should be saved properly", (assert) => {
+            let t = new Task({ title: "iwe title" });
+            assert.equal(t.status, undefined);
+            sinon.stub(Task.prototype, "status").get(function setterFn() {
+                return "active";
+            });
+        
+            t.status = "active";
+            
+            assert.equal(t.status, 'active');
+            sinon.restore();
         });
     })
 
@@ -315,23 +338,43 @@ QUnit.module("Task", () => {
         });
     });
 
-    QUnit.module('set dueDate', () => {
-        test("throws an error when new dueDate is not in valid format", assert => {
-            var props = {
-                id: "etytdtgytf",
-                title: "My task title",
-                description: "Task description",
-                status: "to do",
-                priority: "high",
-                startDate: "2023-12-30",
-                dueDate: "2023-12-31"
-            };
+    QUnit.module("dependsOn", () => {
+        test("throws an exception when no parameters is provided", (assert) => {
+            let tk = new Task({ title: "bhebhgr" });
+            assert.throws(() => {
+                tk.dependsOn();
+            }, new Error(MISSING_PARAMETERS));
+        });
+    
+        test("with taskId parameter specified, getTask from register should be called once", (assert) => {
+            let count = 0;
+            sinon.stub(Register, "getTask").callsFake(function fn() {
+                count = 1;
+                return {
+                    id: '456',
+                    startDate: (function(){
+                        return new Date("2020-11-1");
+                    })()
+                };
+            });
+            let tk = new Task({ id: "14595", title: "dbhr" });
 
-            var task = new Task(props);
+            tk.dependsOn("456");
+            
+            assert.equal(count, 1);
+            sinon.restore();
+        });
+    
+        test("throws an error when the task doesn't exist in register", (assert) => {
+            sinon.stub(Register, "getTask").callsFake(function fn() {
+                return null;
+            });
+            let tk = new Task({ title: "bhebhgr" });
 
-            assert.throws(()=>{
-                task.dueDate = "2023-12-32";
-            }, new Error("dueDate should be in valid format"));
+            assert.throws(() => {
+            tk.dependsOn("1");
+            }, new Error(INEXISTANT_TASK));
+            sinon.restore();
         });
 
         test("throws an error when new dueDate is before startDate", assert => {

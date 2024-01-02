@@ -14,6 +14,18 @@ QUnit.module("Register", () => {
         assert.throws(()=>{
           Register.addTask("hello");
         }, new Error("task should be a task object"));
+
+    test("with no parameter, no task adding", assert => {
+      Register.store = {};
+      Register.addTask();
+
+      assert.equal(Object.keys(Register.store).length, 0, "no task to add");
+    })
+
+    test("throws an exception when task is not a Task object", assert=>{
+        assert.throws(()=>{
+          Register.addTask("hello");
+        }, new Error("task should be a task object"));
     });
 
     test("with an empty store, addTask should add a task", (assert)=>{
@@ -45,7 +57,8 @@ QUnit.module("Register", () => {
 
     test("throw an exception when task is parent", assert=>{
       let t2 = new Task({title: "My task"});
-      let t1 = new Task({title: "My task", parent: t2});
+      let t1 = new Task({title: "My task"});
+      t1.parent = t2.id;
       Register.store = {"48456": t1, "5645": t2};
 
       assert.throws(()=>{
@@ -57,7 +70,6 @@ QUnit.module("Register", () => {
       let t2 = new Task({title: "My task"});
       let t1 = new Task({title: "My task", dependences: {id: t2.id, type: "FF"}});
 
-      console.log(t1);
       assert.throws(()=>{
         Register.deleteTask(5645);
       }, new Error("this task has child: delete child task first"));

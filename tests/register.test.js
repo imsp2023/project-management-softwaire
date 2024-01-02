@@ -16,11 +16,23 @@ QUnit.module("Register", () => {
         }, new Error("task should be a task object"));
     });
 
-    test("throws an error when parameter id is not a string", (assert) => {
-      let r = new Register();
-      assert.throws(() => {
-        r.addTask(1);
-      }, new Error("parameter id should be a non-empty string"));
+    test("with an empty store, addTask should add a task", (assert)=>{
+      let t = new Task({title: "My task"});
+      Register.store = {};
+      Register.addTask(t);
+
+      assert.equal(Object.keys(Register.store).length, 1, "task added");
+    });
+  });
+
+
+  QUnit.module("deleteTask", () => {
+    test("with an inexistant task, no deletion", assert=>{
+      let t = new Task({title: "My task"});
+      Register.store = {"48456": t, }
+      Register.deleteTask("64646");
+
+      assert.equal(Object.keys(Register.store).length, 1, "no deletion");
     });
 
     test("task is deleted when it exists", assert=>{
@@ -31,11 +43,15 @@ QUnit.module("Register", () => {
       assert.equal(Object.keys(Register.store).length, 0, "remove task");
     });
 
-    test("throws an error when parameter task is not specified", (assert) => {
-      let r = new Register();
-      assert.throws(() => {
-        r.addTask("1");
-      }, new Error("parameter task is required"));
+    test("throw an exception when task is parent", assert=>{
+      let t2 = new Task({title: "My task"});
+      let t1 = new Task({title: "My task"});
+      t1.parent = t2.id;
+      Register.store = {"48456": t1, "5645": t2};
+
+      assert.throws(()=>{
+        Register.deleteTask(5645);
+      }, new Error("this task has child: delete child task first"));
     });
 
     test("throw an exception when task has dependence's task", assert=>{

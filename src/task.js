@@ -128,6 +128,10 @@ class Task {
         return this._dueDate;
     }
 
+    get responsible(){
+        return this._responsible;
+    }
+
     // setters
     set title(value) {
         if (!value)

@@ -1,5 +1,6 @@
 const Register = {
   store: {},
+  members: {},
 
   addTask: function (task){
     if(task){
@@ -41,9 +42,17 @@ const Register = {
   getTaskByDueDate: ()=>{
 
   },
-  getTasksByMember: ()=>{
+  
+  getTasksByMember: function (member){
+    let isMember = Register.isMemberExist(member);
 
+    if(isMember){
+        return tasks = Object.values(this.store).filter(task => {
+            task.responsible = member;
+        });
+    }
   },
+
   isMemberExist: (username)=>{
     return;
   },

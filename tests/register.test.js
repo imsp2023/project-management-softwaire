@@ -61,28 +61,40 @@ QUnit.module("Register", () => {
       assert.throws(()=>{
         Register.deleteTask(5645);
       }, new Error("this task has child: delete child task first"));
-      
-      sinon.restore();
     });
   });
 
-  // QUnit.module("getTasksByMember", () => {
-  //   test("with an inexistant member, no task to return", assert=>{
-  //     let t = new Task({title: "My task", taskResponsible: 'franck'});
-  //     Register.store = {"48456": t}
+  QUnit.module("getTasksByMember", () => {
+    test("isMemberExist should be called from Register", (assert) => {
+      var spy = sinon.spy(Register, 'isMemberExist');
 
-  //     let tasks = Register.getTasksByMember('tony');
-  //     assert.equal(tasks.length, 0, "no task");
-  //   });
+      Register.getTasksByMember('tony');
+      assert.true(spy.calledOnce);
+      sinon.restore();
+    });
 
-  //   test("when member exists, member's tasks are returned", assert=>{
-  //     let t = new Task({title: "My task", taskResponsible: 'franck'});
-  //     Register.store = {"48456": t}
+    test("when member don't exists, no task to return", assert=>{
+      var stub = sinon.stub(Register, 'isMemberExist').callsFake(function fn(){
+        return false;
+      });
 
-  //     let tasks = Register.getTasksByMember('franck');
-  //     assert.equal(tasks.length, 1);
-  //   });
-  // });
+      let tasks = Register.getTasksByMember('tony');
+      assert.equal(tasks, undefined, "no task");
+      sinon.restore();
+    });
+
+    test("when member exists, member's tasks are returned", assert=>{
+      let t = new Task({title: "My task", responsible: 'franck'});
+      Register.store = {"48456": t}
+
+      var stub = sinon.stub(Register, 'isMemberExist').callsFake(function fn(){
+        return true;
+      });
+
+      let tasks = Register.getTasksByMember('franck');
+      assert.equal(tasks.length, 1);
+    });
+  });
 
 
   // getTasksByDueDate

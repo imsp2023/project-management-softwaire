@@ -34,8 +34,8 @@ class Task {
             this.dueDate = props.dueDate;
         if (props.parentId)
             this.parent = props.parentId;
-        if (props.dependences && !Array.isArray(props.dependences))
-            throw new Error(INVALID_TYPE_PARAMETER);
+        // if (props.dependences && !Array.isArray(props.dependences))
+        //     throw new Error(INVALID_TYPE_PARAMETER);
         props.dependences && props.dependences.map(({id, type, offsetDay})=>{
             this.dependsOn(id, type);
             this.addOffsetDayOnDependence(id, offsetDay);
@@ -98,6 +98,8 @@ class Task {
             this.startDate = parentTask.startDate;
         if (parentTask.dueDate < this.dueDate)
             this.dueDate = parentTask.dueDate;
+
+            this._parent = parentId;
     }
 
     // getters
@@ -130,6 +132,10 @@ class Task {
 
     get responsible(){
         return this._responsible;
+    }
+
+    get parent(){
+        return this._parent;
     }
 
     // setters

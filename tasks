@@ -1,3 +1,0 @@
-faire une exception lorsqu'il n'a pas de paramètre pour le addtask: when parameter, not task adding
-paramètre de addtask pour le test à la ligne 5
-with an empty store, adding task should be effective

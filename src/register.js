@@ -20,45 +20,53 @@ const Register = {
 
   deleteTask: function(id){
     const isParentTask = Object.values(this.store).some(task => {
-      return task.parent && task.parent === this.store[id];
+      return task.parent && task.parent === id;
     });
 
     if(isParentTask)
       throw new Error("this task has child: delete child task first");
 
       const hasDependence = Object.values(this.store).some(task => {
-        return task.dependences.length > 0;
+        return task.dependences[id];
       });
-
     if(hasDependence)
-      throw new Error("this task has some dependences: delete its first");
+      throw new Error("another tasks depend on this");
 
     delete this.store[id];
   },
 
-  getTask: (taskId)=>{
-    return {};
+  getTask: function (taskId){
+    return this.store[taskId];
   },
-  getTaskByDueDate: ()=>{
 
+  addMember: function (member){
+      let isMember = this.isMemberExist(member);
+      if(isMember)
+        throw new Error(MEMBER_ALREADY_EXISTANT);
+      else if(!member || typeof member != "string")
+        throw new Error(INVALID_TYPE_PARAMETER);
+
+      this.members[member] = member;
   },
-  
+
+  isMemberExist: function (username){
+      if(username && this.members[username])
+        return true;
+      else
+        return false;
+  },
+
   getTasksByMember: function (member){
     let isMember = Register.isMemberExist(member);
 
     if(isMember){
-        return tasks = Object.values(this.store).filter(task => {
-            task.responsible = member;
+        let tasks = Object.values(this.store).filter(task => {
+          return task.responsible === member;
         });
+        return tasks;
     }
   },
 
-  isMemberExist: (username)=>{
-    return;
-  },
-  addMember: (member)=>{
-
-  },
   addProject: (project)=>{
     
   }

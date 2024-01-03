@@ -25,7 +25,6 @@ QUnit.module("Register", () => {
     });
   });
 
-
   QUnit.module("deleteTask", () => {
     test("with an inexistant task, no deletion", assert=>{
       let t = new Task({title: "My task"});
@@ -46,21 +45,84 @@ QUnit.module("Register", () => {
     test("throw an exception when task is parent", assert=>{
       let t2 = new Task({title: "My task"});
       let t1 = new Task({title: "My task"});
+      Register.store = {[t1.id]: t1, [t2.id]: t2};
       t1.parent = t2.id;
-      Register.store = {"48456": t1, "5645": t2};
 
       assert.throws(()=>{
-        Register.deleteTask(5645);
+        Register.deleteTask(t2.id);
       }, new Error("this task has child: delete child task first"));
     });
 
     test("throw an exception when task has dependence's task", assert=>{
       let t2 = new Task({title: "My task"});
-      let t1 = new Task({title: "My task", dependences: {id: t2.id, type: "FF"}});
+      Register.store = {[t2.id]: t2,};
+      let t1 = new Task({title: "My task", dependences: [{id: t2.id, type: "FF"}]});
+      Register.store = {[t1.id]: t1, [t2.id]: t2};
 
       assert.throws(()=>{
-        Register.deleteTask(5645);
-      }, new Error("this task has child: delete child task first"));
+        Register.deleteTask(t2.id);
+      }, new Error("another tasks depend on this"));
+    });
+  });
+  
+
+  QUnit.module("getTask", () => {
+    test("with an unexistant task, return undefined", assert => {
+      let t = new Task({title: "My task"});
+
+      Register.store = {"ffdndcnbd": t};
+      let task = Register.getTask("hdfgdff");
+      assert.equal(task, undefined);
+    });
+
+    test("with an existant task, getTask return it", assert => {
+      let t = new Task({title: "My task"});
+      
+      Register.store = {"ffdndcnbd": t};
+      let task = Register.getTask("ffdndcnbd");
+      assert.equal(task.id, t.id, "get task");
+    });
+  });
+
+  QUnit.module("addMember", () => {
+    test("throw an exception when member is not string", (assert) => {
+      assert.throws(()=>{
+        Register.addMember(123);
+      }, new Error(INVALID_TYPE_PARAMETER));
+    });
+
+    test("throw an exception when member already exists", (assert) => {
+      var stub = sinon.stub(Register, 'isMemberExist').callsFake(function fn(){
+        return true;
+      });
+      
+      assert.throws(()=>{
+        Register.addMember("hello");
+      }, new Error(MEMBER_ALREADY_EXISTANT));
+      sinon.restore();
+    });
+
+    test("with an existing member, addMember should save properly", (assert) => {
+      var stub = sinon.stub(Register, 'isMemberExist').callsFake(function fn(){
+        return false;
+      });
+      
+      Register.addMember("tony");
+      assert.equal(Register.members["tony"], "tony");
+      sinon.restore();
+    });
+  });
+
+  QUnit.module("isMemberExist", () => {
+    test("when member doesn't exist, isMemberExist return false", (assert) => {
+      Register.members = {"tony": "tony", };
+      
+      assert.equal(Register.isMemberExist("franck"), false);
+    });
+
+    test("when member exists, isMemberExist return true", (assert) => {
+      Register.members = {"tony": "tony", };
+      assert.equal(Register.isMemberExist("tony"), true);
     });
   });
 
@@ -84,25 +146,13 @@ QUnit.module("Register", () => {
     });
 
     test("when member exists, member's tasks are returned", assert=>{
+      Register.members = {"franck": "franck"};
       let t = new Task({title: "My task", responsible: 'franck'});
-      Register.store = {"48456": t}
-
-      var stub = sinon.stub(Register, 'isMemberExist').callsFake(function fn(){
-        return true;
-      });
-
-      let tasks = Register.getTasksByMember('franck');
+      Register.store = {"48456": t};
+      
+      let tasks = Register.getTasksByMember("franck");
       assert.equal(tasks.length, 1);
     });
   });
-
-
-  // getTasksByDueDate
-    // 
-  // getTasksByMember
-    // when an inexistant member, no task
-    // when member exists, return member's tasks
-  // getTask
-    // with invalid id, task is not returned
-    //
+    
 });

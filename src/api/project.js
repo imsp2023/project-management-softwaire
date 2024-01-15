@@ -7,6 +7,7 @@ class Project {
   _startDate = "";
   _endDate = "";
   _status = undefined; 
+  tasks = {};
   members = [];
 
   constructor(props = undefined) {
@@ -27,7 +28,7 @@ class Project {
       throw new  Error(INVALID_TYPE_PARAMETER);
     if (props.members)
       props.members.map((username)=>{
-        this.assign(username);
+        this.addMember(username);
       });
     if (props.responsible)
       this.responsible = props.responsible;
@@ -39,7 +40,6 @@ class Project {
         this.startDate = props.startDate;
     if (props.endDate) 
       this.endDate = props.endDate;
-    Register.addProject(this);
   }
 
 
@@ -69,17 +69,17 @@ class Project {
   /**
    * setters
    */  
-  assign(username){
+  addMember(username){
     var memberExist;
     if (this.members.includes(username))
       return;
-    memberExist = Register.isMemberExist(username);
+    memberExist = configuration.users.includes(username);
     if (memberExist == false)
       throw new Error(INEXISTANT_MEMBER);
     this.members.push(username);    
   }
 
-  unAssign(username){
+  removeMember(username){
     if (this.members.includes(username))
       this.members.splice(this.members.indexOf(username), 1);
     else
@@ -106,18 +106,18 @@ class Project {
     this._status = value;
   }
 
-  set responsible(value){
-    var memberExiste;
-    if (!value)
+  set responsible(username){
+    var memberExist;
+    if (!username)
       throw new Error(MISSING_PARAMETERS);
-    if (!this.members.includes(value)){
-      memberExiste = Register.isMemberExist(value);
-      if (memberExiste)
-        this.members.push(value);
+    if (!this.members.includes(username)){
+      memberExist = configuration.users.includes(username);
+      if (memberExist)
+        this.members.push(username);
       else
         throw new Error(INEXISTING_MEMBER);
     }
-    this._responsible = value;
+    this._responsible = username;
   }
 
   set description(value){
@@ -139,33 +139,13 @@ class Project {
   }
 
 
-  updateTaskStartDate(task, value){
-    var date = value.split('-');
-    if ((new Date(date[YEAR], date[MONTH] - 1, date[DAY])).getTime() < this.startDate.getTime())
-      task.startDate = this.startDate.getDate() + '-' + 
-                        Number(this.startDate.getMonth() + 1) + '-' + 
-                        this.startDate.getFullYear();
-    else
-      task.startDate = value;
-  }
-
-  updateTaskDueDate(task, value){
-    var date = value.split('-');
-    if ((new Date(date[YEAR], date[MONTH] - 1, date[DAY])).getTime() > this.endDate.getTime())
-      task.dueDate = this.endDate.getDate() + '-' + 
-                      Number(this.endDate.getMonth() + 1) + '-' + 
-                      this.endDate.getFullYear();
-    else
-      task.dueDate = value;
-  }
-
   addTask(task){
     if (!task)
       throw new Error(MISSING_PARAMETERS);
     if (!(task instanceof Task))
       throw new Error(INVALID_TYPE_PARAMETER);
     this.validateTask(task);
-    Register.addTask(task.id + this.id, task);
+    this.tasks[task.id] = task;
   }
 
   removeTask(taskId = 0){
@@ -175,21 +155,37 @@ class Project {
       throw new Error(MISSING_PARAMETERS);
     if (typeof taskId != 'string')
       throw new Error(INVALID_TYPE_PARAMETER);
-    Register.deleteTask(taskId);
+    delete this.tasks[taskId];
   }
 
   validateTask(task = 0){
+    let date;
     if (task == null)
       throw new Error(INVALID_TYPE_PARAMETER);
     if (!task)
       throw new Error(MISSING_PARAMETERS);
     if (!(task instanceof Task))
       throw new Error(INVALID_TYPE_PARAMETER);
-    this.updateTaskStartDate(task, task.startDate.getDate() + '-' + 
-                              Number(task.startDate.getMonth() + 1) + '-' + 
-                              task.startDate.getFullYear());
-    this.updateTaskDueDate(task, task.dueDate.getDate() + '-' + 
-                              Number(task.dueDate.getMonth() + 1) + '-' + 
-                              task.dueDate.getFullYear());
+ 
+    date = task.startDate.getDate() + '-' + 
+                Number(task.startDate.getMonth() + 1) + '-' + 
+                task.startDate.getFullYear();
+
+    if (task.startDate.getTime() < this.startDate.getTime())
+      task.startDate = this.startDate.getDate() + '-' + 
+                        Number(this.startDate.getMonth() + 1) + '-' + 
+                        this.startDate.getFullYear();
+    else
+      task.startDate = date;
+
+    date = task.dueDate.getDate() + '-' + 
+            Number(task.dueDate.getMonth() + 1) + '-' + 
+            task.dueDate.getFullYear();
+    if (task.dueDate.getTime() > this.endDate.getTime())
+      task.dueDate = this.endDate.getDate() + '-' + 
+                      Number(this.endDate.getMonth() + 1) + '-' + 
+                      this.endDate.getFullYear();
+    else
+      task.dueDate = date;
   }
 }

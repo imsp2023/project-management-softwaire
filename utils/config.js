@@ -1,8 +1,9 @@
-let config = {
+let configuration = {
     priority: ['basse', 'normale', 'élevée', 'urgente'],
     status: ['à faire', 'en cours', 'achevé'],
-    loadData: ()=>{},
-    saveTask: (task)=>{},
-    saveProject: (project)=>{},
-    saveMember: (member)=>{}
+    users: [],
+    loadUsers: (callback)=>{},
+    loadData: (callback)=>{},
+    saveTask: (task, callback)=>{},
+    saveProject: (project, callback)=>{}
 };

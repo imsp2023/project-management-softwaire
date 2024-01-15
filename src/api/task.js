@@ -32,50 +32,11 @@ class Task {
             this.startDate = props.startDate;
         if (props.dueDate)
             this.dueDate = props.dueDate;
-        if (props.parentId)
-            this.parent = props.parentId;
-        if (props.dependences && !Array.isArray(props.dependences))
-            throw new Error(INVALID_TYPE_PARAMETER);
-        props.dependences && props.dependences.map(({id, type, offsetDay})=>{
-            this.dependsOn(id, type);
-            this.addOffsetDayOnDependence(id, offsetDay);
-        });
         if (props.responsible)
             this.responsible = props.responsible;
     }
 
     dependsOn(taskId = 0, dependence = START_START){
-        let taskExist, dependenceIsCyclic;
-        if (!taskId)
-            throw new Error(MISSING_PARAMETERS);
-        taskExist = Register.getTask(taskId);
-        if (!taskExist)
-            throw new Error(INEXISTANT_TASK);
-        dependenceIsCyclic = this.hasCyclicDependence(taskId);
-        if (dependenceIsCyclic)
-            throw new Error(CYCLIC_DEPENDENCE_NOT_ALLOWED);
-        switch(dependence){
-            case START_START:
-                if (this.startDate < taskExist.startDate)
-                    this.startDate = taskExist.startDate.getDate() + '-' + 
-                                    Number(taskExist.startDate.getMonth() + 1) + '-' +
-                                    taskExist.startDate.getFullYear();
-                break;
-            case END_START:
-                if (this.startDate < taskExist.dueDate)
-                this.startDate = taskExist.dueDate.getDate() + '-' + 
-                                Number(taskExist.dueDate.getMonth() + 1) + '-' +
-                                taskExist.dueDate.getFullYear();
-                break;
-            case END_END:
-                if (this.dueDate < taskExist.dueDate)
-                    this.dueDate = taskExist.dueDate.getDate() + '-' + 
-                                    Number(taskExist.dueDate.getMonth() + 1) + '-' +
-                                    taskExist.dueDate.getFullYear();
-                break;
-            default:
-                throw new Error(INVALID_DEPENDENCE);
-        }
         this.dependences[taskId] = dependence;
     }
 
@@ -88,16 +49,9 @@ class Task {
     }
 
     set parent(parentId){
-        let parentTask;
         if (!parentId)
             throw new Error(MISSING_PARAMETERS);
-        parentTask = Register.getTask(parentId);
-        if (!parentTask)
-            throw new Error(INEXISTANT_TASK);
-        if (parentTask.startDate > this.startDate)
-            this.startDate = parentTask.startDate;
-        if (parentTask.dueDate < this.dueDate)
-            this.dueDate = parentTask.dueDate;
+        this._parent = parentId;
     }
 
     // getters
@@ -126,6 +80,10 @@ class Task {
 
     get dueDate(){
         return this._dueDate;
+    }
+
+    get parent(){
+        return this._parent;
     }
 
     // setters
@@ -173,7 +131,7 @@ class Task {
 
     set responsible(username){
         let memberExist;
-        memberExist = Register.isMemberExist(username);
+        memberExist = configuration.users.includes(username);
         if (!memberExist)
             throw new Error(INEXISTANT_MEMBER);
         this._responsible = username;

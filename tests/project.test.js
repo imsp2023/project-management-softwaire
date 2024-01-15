@@ -137,9 +137,9 @@ QUnit.module("Project", () => {
       }, INVALID_TYPE_PARAMETER);
     });
 
-    test("with members attribute specified, assign should be called",(assert) =>{
+    test("with members attribute specified, addMember should be called",(assert) =>{
       let count = 0;
-      sinon.stub(Project.prototype, "assign").callsFake(function fakeFn() {
+      sinon.stub(Project.prototype, "addMember").callsFake(function fakeFn() {
         count++;
       });
       var props = {id: "azer", name: 'iwe', members: ['roland', 'alberta']};
@@ -160,19 +160,6 @@ QUnit.module("Project", () => {
 
       assert.equal(pj.id, props.id, 'set id');
       assert.equal(pj.name, props.name, 'set name');
-    });
-
-    test("addProject from Register shouldbe called",(assert) =>{
-      let count = 0;
-      sinon.stub(Register, "addProject").callsFake(function fakeFn() {
-        count++;
-      });
-      var props = {id: "azer", name: 'iwe'};
-
-      var pj = new Project(props);
-
-      assert.equal(count, 1);
-      sinon.restore();
     });
   });
 
@@ -305,58 +292,49 @@ QUnit.module("Project", () => {
     });
   });
 
-  QUnit.module("assign", () => {
+  QUnit.module("addMember", () => {
     test("with an already existing member, no more adding", (assert) => {
       let p = new Project({ name: "iwe" });
       p.members = ['duamelo'];
-      p.assign('duamelo');
+      p.addMember('duamelo');
       assert.equal(p.members.length, 1);
     });
 
-    test("isMemberExist should be called from Register", (assert) => {
+    test("with an existing user, addMember should save properly", (assert) => {
       let p = new Project({ name: "iwe" });
       p.members = [];
-      let count = 0;
-      var stub = sinon.stub(Register, 'isMemberExist').callsFake(function fn(){
-        count++;
-        return true;
+      var stub = sinon.stub(configuration, 'loadUsers').callsFake(function fn(){
+        configuration.users = ['duamelo'];
       });
-      p.assign('duamelo');
-      assert.equal(count, 1);
-      sinon.restore();
-    });
+      configuration.loadUsers(()=>{});
 
-    test("with an existing member, addMember should save properly", (assert) => {
-      let p = new Project({ name: "iwe" });
-      p.members = [];
-      var stub = sinon.stub(Register, 'isMemberExist').callsFake(function fn(){
-        return true;
-      });
-      p.assign('duamelo');
+      p.addMember('duamelo');
       assert.equal(p.members[0], 'duamelo');
       sinon.restore();
     });
 
-    test("with an unexisting member, addMember should throw an exception", (assert) => {
+    test("with an unexisting user, addMember should throw an exception", (assert) => {
         let p = new Project({ name: "iwe" });
         p.members = [];
-        var stub = sinon.stub(Register, 'isMemberExist').callsFake(function fn(){
-          return false;
+        var stub = sinon.stub(configuration, 'loadUsers').callsFake(function fn(){
+          configuration.users = [];
         });
+
+        configuration.loadUsers(()=>{});
         assert.throws(()=>{
-          p.assign('duamelo');
+          p.addMember('duamelo');
         }, INEXISTANT_MEMBER);
         sinon.restore();
     });
   });
   
-  QUnit.module("unAssign", ()=>{
+  QUnit.module("removeMember", ()=>{
       test("with invalid username, an exception should be thrown", assert=>{
         let p = new Project({ name: "iwe" });
         p.members = ['duamelo'];
 
         assert.throws(()=>{
-          p.unAssign('franck');
+          p.removeMember('franck');
         }, new Error(INEXISTANT_MEMBER));
       });
 
@@ -364,7 +342,7 @@ QUnit.module("Project", () => {
         let p = new Project({ name: "iwe" });
         p.members = ['duamelo'];
 
-        p.unAssign('duamelo');
+        p.removeMember('duamelo');
 
         assert.false(p.members.includes('duamelo'));
       });
@@ -386,27 +364,14 @@ QUnit.module("Project", () => {
       assert.equal(p.responsible, 'duamelo');
     });
 
-    test("with a member that's not part of the project' members, isMemberExist should be called from Register", (assert) => {
-      let p = new Project({ name: "iwe" });
-      p.members = [];
-      let count = 0;
-      sinon.stub(Register, "isMemberExist").callsFake(function fakeFn() {
-        count++;
-        return true;
-      });
-
-      p.responsible = 'duamelo';
-
-      assert.equal(count, 1);
-      sinon.restore();
-    });
-
     test("with an existing member specified, responsible attribute should be updated", (assert) => {
       let p = new Project({ name: "iwe" });
       p.members = [];
-      var stub = sinon.stub(Register, 'isMemberExist').callsFake(function fn(){
-        return true;
+      var stub = sinon.stub(configuration, 'loadUsers').callsFake(function fn(){
+        configuration.users = ['duamelo'];
       });
+      configuration.loadUsers(()=>{});
+
       p.responsible = 'duamelo';
       assert.equal(p.members[0], 'duamelo');
       sinon.restore();
@@ -415,9 +380,11 @@ QUnit.module("Project", () => {
     test("with a member that's not enregistred, throws an exception", (assert) => {
       let p = new Project({ name: "iwe" });
       p.members = [];
-      var stub = sinon.stub(Register, 'isMemberExist').callsFake(function fn(){
-        return false;
+      var stub = sinon.stub(configuration, 'loadUsers').callsFake(function fn(){
+        configuration.users = [];
       });
+      configuration.loadUsers(()=>{});
+
       assert.throws(()=>{
         p.responsible = 'duamelo';
       }, INEXISTING_MEMBER);
@@ -454,7 +421,7 @@ QUnit.module("Project", () => {
       sinon.restore();
     });
 
-    test("with valid task, addTask from register should be called", assert=>{
+    test("with valid task, it should be saved", assert=>{
       let project = new Project({ name: "iwe" });
       project.startDate = '20-10-2022';
       project.endDate = '20-12-2022';
@@ -463,14 +430,9 @@ QUnit.module("Project", () => {
       task.startDate = '21-10-2022';
       task.dueDate = '15-12-2022';
 
-      let count = 0;
-      sinon.stub(Register, "addTask").callsFake(function fakeFn() {
-        count++;
-      });
-
       project.addTask(task);
 
-      assert.equal(count, 1);
+      assert.deepEqual(project.tasks[task.id], task);
       sinon.restore();
     });
   });
@@ -490,7 +452,7 @@ QUnit.module("Project", () => {
       }, new Error(INVALID_TYPE_PARAMETER));
     });
 
-    test("deleteTask from register should be called", assert=>{
+    test("with valid id, task should be deleted from tasks dictionnary", assert=>{
       let project = new Project({ name: "iwe" });
       project.startDate = '20-10-2022';
       project.endDate = '20-12-2022';
@@ -499,66 +461,12 @@ QUnit.module("Project", () => {
       task.startDate = '21-10-2022';
       task.dueDate = '15-12-2022';
 
-      let count = 0;
-      sinon.stub(Register, "addTask").callsFake(function fakeFn() {
-      });
-
       project.addTask(task);
 
-      sinon.stub(Register, "deleteTask").callsFake(function fakeFn() {
-        count++;
-      });
-
       project.removeTask(task.id);
-      assert.equal(count, 1);
+
+      assert.notOk(project.tasks[task.id]);
       sinon.restore();
-    });
-  });
-
-  QUnit.module("updateTaskStartDate", ()=>{
-      test("with task' startDate that comes before project startDate, update task' startDate", assert=>{
-        let project = new Project({ name: "iwe" });
-        project.startDate = '20-10-2022';
-
-        let task = new Task({title: 'task'});
-
-        project.updateTaskStartDate(task, '10-10-2022');
-
-        assert.deepEqual(task.startDate, project.startDate);
-      });
-
-      test("with task' startDate that comes after project startDate, no update", assert=>{
-        let project = new Project({ name: "iwe" });
-        project.startDate = '20-10-2022';
-
-        let task = new Task({title: 'task'});
-        project.updateTaskStartDate(task, '23-10-2022');
-
-        assert.deepEqual(task.startDate, new Date(2022, 9, 23));
-      });
-  });
-
-  QUnit.module("updateTaskDueDate", ()=>{
-    test("with task' endDate that comes after project's dueDate, update task' endDate", assert=>{
-      let project = new Project({ name: "iwe" });
-      project.startDate = '20-10-2022';
-      project.endDate = '20-11-2022';
-
-      let task = new Task({title: 'task'});
-      project.updateTaskDueDate(task, '25-11-2022');
-
-      assert.deepEqual(task.dueDate, project.endDate);
-    });
-
-    test("with task' endDate that comes before project's dueDate, no update", assert=>{
-      let project = new Project({ name: "iwe" });
-      project.startDate = '20-10-2022';
-      project.endDate = '20-12-2022';
-
-      let task = new Task({title: 'task'});
-      project.updateTaskDueDate(task, '20-11-2022');
-
-      assert.deepEqual(task.dueDate, new Date(2022, 10, 20));
     });
   });
 
@@ -579,42 +487,62 @@ QUnit.module("Project", () => {
         }, new Error(INVALID_TYPE_PARAMETER));
       });
 
-      test("updateTaskStartDate should be called", assert=>{
+      test("with task' startDate that comes before project startDate, update task' startDate", assert=>{
         let project = new Project({ name: "iwe" });
         project.startDate = '20-10-2022';
-        project.endDate = '20-12-2022';
-        let count = 0;
-        sinon.stub(Project.prototype, "updateTaskStartDate").callsFake(function fakeFn() {
-          count++;
-          return;
-        });
+        project.endDate = '20-11-2022';
 
-        var task  = new Task({title: 'task'});
-        task.startDate = '21-10-2022';
-        task.dueDate = '15-12-2022';
+        let task = new Task({title: 'task'});
+
+        task.startDate = '10-10-2022';
+        task.dueDate = '20-11-2022';
+
+
         project.validateTask(task);
 
-        assert.equal(count, 1);
-        sinon.restore();
+        assert.deepEqual(task.startDate, project.startDate);
       });
 
-      test("updateTaskDueDate should be called", assert=>{
+      test("with task' startDate that comes after project startDate, no update", assert=>{
+        let project = new Project({ name: "iwe" });
+        project.startDate = '20-10-2022';
+        project.endDate = '20-11-2022';
+
+        let task = new Task({title: 'task'});
+        task.startDate = '23-10-2022';
+        task.dueDate = '20-11-2022';
+
+        project.validateTask(task);
+
+        assert.deepEqual(task.startDate, new Date(2022, 9, 23));
+      });
+
+      test("with task' endDate that comes after project's dueDate, update task' endDate", assert=>{
+        let project = new Project({ name: "iwe" });
+        project.startDate = '20-10-2022';
+        project.endDate = '20-11-2022';
+  
+        let task = new Task({title: 'task'});
+        task.startDate = '23-10-2022';
+        task.dueDate = '25-11-2022';
+
+        project.validateTask(task);
+  
+        assert.deepEqual(task.dueDate, project.endDate);
+      });
+  
+      test("with task' endDate that comes before project's dueDate, no update", assert=>{
         let project = new Project({ name: "iwe" });
         project.startDate = '20-10-2022';
         project.endDate = '20-12-2022';
-        let count = 0;
-        sinon.stub(Project.prototype, "updateTaskDueDate").callsFake(function fakeFn() {
-          count++;
-          return;
-        });
-
-        var task  = new Task({title: 'task'});
-        task.startDate = '21-10-2022';
-        task.dueDate = '15-12-2022';
+  
+        let task = new Task({title: 'task'});
+        task.startDate = '23-10-2022';
+        task.dueDate = '20-11-2022';
+  
         project.validateTask(task);
 
-        assert.equal(count, 1);
-        sinon.restore();
+        assert.deepEqual(task.dueDate, new Date(2022, 10, 20));
       });
   });
 });

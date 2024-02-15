@@ -24,7 +24,7 @@ const Register = {
     });
 
     if(isParentTask)
-      throw new Error("this task has child: delete child task first");
+      throw new Error("another tasks depend on this");
 
       const hasDependence = Object.values(this.store).some(task => {
         return task.dependences[id];
@@ -36,7 +36,10 @@ const Register = {
   },
 
   getTask: function (taskId){
-    return this.store[taskId];
+    if(this.store[taskId])
+      return this.store[taskId];
+
+    return undefined;
   },
 
   addMember: function (member){

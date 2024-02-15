@@ -4,7 +4,11 @@ QUnit.module("Task", () => {
     QUnit.module('constructor', () => {
         test("throws an error when parameters are not specified", assert =>{
             assert.throws(() => {
-                new Task();
+                QUnit.test("throws an exception when no parameters are precised", assert => {
+                    assert.throws(() => {
+                      new Release();
+                    }, "parameter are missing");
+                  });             new Task();
             }, new Error(MISSING_PARAMETERS));
         });
 

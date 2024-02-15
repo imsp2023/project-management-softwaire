@@ -3,4 +3,7 @@ Task
     -don't exception when task title isn't string but conversion to string
 
     -how store member
-    -how related tasks to project
+    -how related tasks to project   
+
+    addMember to store member class
+    tester si un isExistedMember a été appelé

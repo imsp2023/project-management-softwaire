@@ -42,7 +42,7 @@ QUnit.module("Register", () => {
       assert.equal(Object.keys(Register.store).length, 0, "remove task");
     });
 
-    test("throw an exception when task is parent", assert=>{
+    test("throws an exception when task is parent", assert=>{
       let t2 = new Task({title: "My task"});
       let t1 = new Task({title: "My task"});
       Register.store = {[t1.id]: t1, [t2.id]: t2};
@@ -50,10 +50,10 @@ QUnit.module("Register", () => {
 
       assert.throws(()=>{
         Register.deleteTask(t2.id);
-      }, new Error("this task has child: delete child task first"));
+      }, new Error("another tasks depend on this"));
     });
 
-    test("throw an exception when task has dependence's task", assert=>{
+    test("throws an exception when task has dependence's task", assert=>{
       let t2 = new Task({title: "My task"});
       Register.store = {[t2.id]: t2,};
       let t1 = new Task({title: "My task", dependences: [{id: t2.id, type: "FF"}]});
@@ -72,10 +72,10 @@ QUnit.module("Register", () => {
 
       Register.store = {"ffdndcnbd": t};
       let task = Register.getTask("hdfgdff");
-      assert.equal(task, undefined);
+      assert.equal(task, null);
     });
 
-    test("with an existant task, getTask return it", assert => {
+    test("with an existant task, return task", assert => {
       let t = new Task({title: "My task"});
       
       Register.store = {"ffdndcnbd": t};
@@ -85,13 +85,13 @@ QUnit.module("Register", () => {
   });
 
   QUnit.module("addMember", () => {
-    test("throw an exception when member is not string", (assert) => {
+    test("throws an exception when member is not string", (assert) => {
       assert.throws(()=>{
         Register.addMember(123);
       }, new Error(INVALID_TYPE_PARAMETER));
     });
 
-    test("throw an exception when member already exists", (assert) => {
+    test("throws an exception when member already exists", (assert) => {
       var stub = sinon.stub(Register, 'isMemberExist').callsFake(function fn(){
         return true;
       });
@@ -126,7 +126,9 @@ QUnit.module("Register", () => {
     });
   });
 
+
   QUnit.module("getTasksByMember", () => {
+    // pas important de fair
     test("isMemberExist should be called from Register", (assert) => {
       var spy = sinon.spy(Register, 'isMemberExist');
 
@@ -145,6 +147,7 @@ QUnit.module("Register", () => {
       sinon.restore();
     });
 
+    // V2RIFIER SI CE SONT LES VRAIES TASKS QUI SONT renvoyées
     test("when member exists, member's tasks are returned", assert=>{
       Register.members = {"franck": "franck"};
       let t = new Task({title: "My task", responsible: 'franck'});

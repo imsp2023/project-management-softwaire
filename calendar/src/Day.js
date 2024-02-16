@@ -2,7 +2,7 @@ class Day {
     _cases = [];
 
     constructor(props){
-        //
+        
     }
 
 
@@ -12,26 +12,30 @@ class Day {
         }
 
         events.forEach((event) => {
+            console.log(event);
             if(!this.isTodayEvent(event))
                 return;
 
-            let beginPosition = this.findPosition(event);
-            let endPosition = this.findPosition(event);
+            let beginPosition = this.findPosition(event.beginDate);
+            let endPosition = this.findPosition(event.endDate);
 
             if(endPosition === -1 || beginPosition === -1)
                 return;
 
-            event.endPosition = beginPosition;
-            event.beginPosition = endPosition;
+            event.endPosition = endPosition;
+            event.beginPosition = beginPosition;
+
+            console.log("J'y suis");
             
             this._cases.push(event);
-
+            
         });
+        
+        console.log(this.cases);
     }
 
 
     isTodayEvent (event) {
-        let validEvent = true;
 
         if(!event.endDate && !event.beginDate)
             return false;
@@ -49,20 +53,17 @@ class Day {
 
         // handle endDate
         if(event.endDate || !event.endDate == ""){
-            let isValid = date.isValidDateFormat(event.endDate);
+            if(!date.isValidDateFormat(event.endDate))
+                return false
 
-            if(!isValid)
-                return false;
         }else
-            event.endDate = date.endOfCurrentDay();
+            event.endDate = date.endOfCurrentDay()
 
         let beginDate = new Date(event.beginDate);
         let endDate = new Date(event.endDate);
 
-        if(beginDate <= endDate){
-            if (beginDate >= new Date(date.beginOfCurrentDay())) 
+        if(beginDate <= endDate && beginDate >= new Date(date.beginOfCurrentDay()))
             return true;
-        }
 
         return false;
     }
@@ -75,4 +76,5 @@ class Day {
     get cases (){
         return this._cases;
     }
+
 }
